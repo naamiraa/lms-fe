@@ -1,13 +1,17 @@
+import AppShell from "@/components/layout/AppShell";
+import RoleGuard from "@/features/auth/components/RoleGuard";
+import { adminNavigation } from "@/lib/navigation";
+
 export default function AdminLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <div className="min-h-screen bg-slate-50">
-      <main className="p-8">
+    <RoleGuard allowedRoles={["ADMIN"]}>
+      <AppShell navigation={adminNavigation}>
         {children}
-      </main>
-    </div>
+      </AppShell>
+    </RoleGuard>
   );
 }
