@@ -24,3 +24,38 @@ export const adminNavigation = [
     href: "/admin/analytics",
   },
 ];
+
+export const participantNavigation = [
+  {
+    label: "Dashboard",
+    href: "/dashboard",
+  },
+  {
+    label: "Learning",
+    href: "/learning",
+  },
+  {
+    label: "Assessment",
+    href: "/assessment",
+  },
+  {
+    label: "Simulation",
+    href: "/simulation",
+  },
+  {
+    label: "Performance",
+    href: "/performance",
+  },
+  {
+    label: "Feedback",
+    href: "/feedback",
+  },
+  {
+    label: "Certificates",
+    href: "/certificates",
+  },
+  {
+    label: "History",
+    href: "/history",
+  },
+];

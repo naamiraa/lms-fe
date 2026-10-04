@@ -18,3 +18,25 @@ export interface AdminDashboardResponse {
   failedSimulations: number;
   scenarioPerformance: ScenarioPerformance[];
 }
+
+export interface ParticipantTrainingSummary {
+  simulationSessionId: string;
+  moduleName: string;
+  scenarioName: string;
+  overallScore: number;
+  result: string;
+  completedAt: string;
+}
+
+export interface ParticipantDashboardResponse {
+  completedLearningContents: number;
+  totalLearningContents: number;
+  learningProgressPercentage: number;
+
+  completedAssessments: number;
+  completedSimulations: number;
+  certificatesEarned: number;
+
+  latestTraining: ParticipantTrainingSummary | null;
+  recentTrainings: ParticipantTrainingSummary[];
+}
