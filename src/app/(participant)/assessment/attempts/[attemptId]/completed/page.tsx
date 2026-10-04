@@ -1,6 +1,16 @@
 import Link from "next/link";
 
-export default function AssessmentCompletedPage() {
+interface AssessmentCompletedPageProps {
+  params: Promise<{
+    attemptId: string;
+  }>;
+}
+
+export default async function AssessmentCompletedPage({
+  params,
+}: AssessmentCompletedPageProps) {
+  const { attemptId } = await params;
+
   return (
     <div className="mx-auto max-w-2xl">
       <div className="rounded-2xl border border-emerald-100 bg-white p-8 text-center shadow-sm">
@@ -35,7 +45,9 @@ export default function AssessmentCompletedPage() {
         </div>
 
         <Link
-          href="/simulation"
+          href={`/simulation?assessmentAttemptId=${encodeURIComponent(
+            attemptId
+          )}`}
           className="mt-6 inline-flex rounded-xl bg-[#006CB8] px-6 py-3 text-sm font-semibold text-white transition hover:opacity-90"
         >
           Continue to Simulation →

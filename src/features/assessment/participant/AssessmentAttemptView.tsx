@@ -149,10 +149,13 @@ export default function AssessmentAttemptView({
       setError("");
 
       await submitAssessment(attemptId);
+      router.push(
+        `/assessment/attempts/${attemptId}/completed`
+        );
 
-      sessionStorage.removeItem(
-        `assessment_attempt_${attemptId}`
-      );
+    //   sessionStorage.removeItem(
+    //     `assessment_attempt_${attemptId}`
+    //   );
 
       router.replace(
         `/assessment/attempts/${attemptId}/completed`
