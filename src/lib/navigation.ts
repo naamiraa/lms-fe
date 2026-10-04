@@ -59,3 +59,23 @@ export const participantNavigation = [
     href: "/history",
   },
 ];
+
+
+export const instructorNavigation = [
+  {
+    label: "Dashboard",
+    href: "/instructor/dashboard",
+  },
+  {
+    label: "Participants",
+    href: "/instructor/participants",
+  },
+  {
+    label: "Training Sessions",
+    href: "/instructor/sessions",
+  },
+  {
+    label: "Feedback",
+    href: "/instructor/feedback",
+  },
+];

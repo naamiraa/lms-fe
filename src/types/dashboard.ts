@@ -40,3 +40,22 @@ export interface ParticipantDashboardResponse {
   latestTraining: ParticipantTrainingSummary | null;
   recentTrainings: ParticipantTrainingSummary[];
 }
+
+export interface InstructorRecentSession {
+  simulationSessionId: string;
+  participantName: string;
+  scenarioName: string;
+  simulatorScore: number;
+  completedAt: string;
+  hasInstructorFeedback: boolean;
+  overallScore: number | null;
+  result: string | null;
+}
+
+export interface InstructorDashboardResponse {
+  completedSimulations: number;
+  pendingFeedback: number;
+  evaluatedSessions: number;
+  averageSimulatorScore: number;
+  recentSessions: InstructorRecentSession[];
+}
