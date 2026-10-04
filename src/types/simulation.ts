@@ -32,3 +32,15 @@ export interface SimulationSession {
   scenarioName: string;
   status: string;
 }
+
+export interface SimulationSessionDetail {
+  id: string;
+  assessmentAttemptId: string;
+  simulationScenarioId: string;
+  simulationScenarioName: string;
+  simulationDomainName: string;
+  status: string;
+  startedAt: string | null;
+  completedAt: string | null;
+  createdAt: string;
+}

@@ -4,6 +4,7 @@ import type {
   SimulationDomain,
   SimulationScenario,
   SimulationSession,
+  SimulationSessionDetail,
 } from "@/types/simulation";
 
 export async function getSimulationDomains(): Promise<
@@ -31,5 +32,13 @@ export async function createSimulationSession(
       method: "POST",
       body: JSON.stringify(payload),
     }
+  );
+}
+
+export async function getSimulationSession(
+  sessionId: string
+): Promise<SimulationSessionDetail> {
+  return apiFetch<SimulationSessionDetail>(
+    `/api/simulation-sessions/${sessionId}`
   );
 }
