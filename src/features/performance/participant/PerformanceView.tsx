@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { getPerformanceEvaluation } from "@/services/performance.service";
 import type { PerformanceEvaluation } from "@/types/performance";
+import Link from "next/dist/client/link";
 
 function formatDuration(seconds: number) {
   const minutes = Math.floor(seconds / 60);
@@ -280,6 +281,17 @@ export default function PerformanceView() {
           </div>
         )}
       </section>
+
+      <div className="flex justify-end">
+        <Link
+            href={`/feedback?sessionId=${encodeURIComponent(
+            performance.simulationSessionId
+            )}`}
+            className="rounded-xl bg-[#006CB8] px-6 py-3 text-sm font-semibold text-white transition hover:opacity-90"
+        >
+            View Instructor Feedback →
+        </Link>
+        </div>
     </div>
   );
 }
