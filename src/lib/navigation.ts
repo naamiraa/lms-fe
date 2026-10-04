@@ -42,14 +42,14 @@ export const participantNavigation = [
     label: "Simulation",
     href: "/simulation",
   },
-  {
-    label: "Performance",
-    href: "/performance",
-  },
-  {
-    label: "Feedback",
-    href: "/feedback",
-  },
+  // {
+  //   label: "Performance",
+  //   href: "/performance",
+  // },
+  // {
+  //   label: "Feedback",
+  //   href: "/feedback",
+  // },
   {
     label: "Certificates",
     href: "/certificates",
