@@ -31,3 +31,24 @@ export interface InstructorFeedback {
   violationExplanations: ViolationExplanation[];
   recommendedModules: RecommendedModule[];
 }
+
+
+export interface CreateInstructorFeedbackRequest {
+  simulationSessionId: string;
+  overallComments: string;
+  strengths: string[];
+  improvementAreas: string[];
+  safetyRecommendations: {
+    description: string;
+    priority: number;
+  }[];
+  violationExplanations: {
+    simulationEventId: string;
+    explanation: string;
+  }[];
+  recommendedModules: {
+    learningModuleId: string;
+    recommendationType: string | null;
+    order: number;
+  }[];
+}
