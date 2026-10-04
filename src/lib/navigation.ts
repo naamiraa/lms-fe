@@ -74,8 +74,8 @@ export const instructorNavigation = [
     label: "Training Sessions",
     href: "/instructor/sessions",
   },
-  {
-    label: "Feedback",
-    href: "/instructor/feedback",
-  },
+  // {
+  //   label: "Feedback",
+  //   href: "/instructor/feedback",
+  // },
 ];
