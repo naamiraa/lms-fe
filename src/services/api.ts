@@ -17,7 +17,9 @@ export async function apiFetch<T>(
 
   const headers = new Headers(options.headers);
 
-  headers.set("Content-Type", "application/json");
+  if (!headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json");
+  }
 
   if (token) {
     headers.set(
@@ -42,6 +44,17 @@ export async function apiFetch<T>(
       error?.message ||
         `Request failed with status ${response.status}`
     );
+  }
+
+  if (response.status === 204) {
+    return undefined as T;
+  }
+
+  const contentType =
+    response.headers.get("content-type");
+
+  if (!contentType?.includes("application/json")) {
+    return undefined as T;
   }
 
   return response.json() as Promise<T>;
