@@ -1,4 +1,11 @@
 "use client";
+import Button from "@/components/ui/Button";
+
+import Alert from "@/components/shared/Alert";
+
+import LoadingState from "@/components/shared/LoadingState";
+
+import PageHeader from "@/components/shared/PageHeader";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -19,38 +26,29 @@ import type {
 } from "@/types/simulation";
 
 export default function SimulationView() {
+  const searchParams = useSearchParams();
 
-    const searchParams = useSearchParams();
+  const assessmentAttemptId = searchParams.get("assessmentAttemptId");
 
-    const assessmentAttemptId =
-    searchParams.get("assessmentAttemptId");
+  const [isCreatingSession, setIsCreatingSession] = useState(false);
 
-    const [isCreatingSession, setIsCreatingSession] =
-    useState(false);
+  const [domains, setDomains] = useState<SimulationDomain[]>([]);
 
-  const [domains, setDomains] = useState<
-    SimulationDomain[]
-  >([]);
+  const [scenarios, setScenarios] = useState<SimulationScenario[]>([]);
 
-  const [scenarios, setScenarios] = useState<
-    SimulationScenario[]
-  >([]);
-
-  const [session, setSession] =
-  useState<SimulationSession | null>(null);
+  const [session, setSession] = useState<SimulationSession | null>(null);
 
   const [sessionDetail, setSessionDetail] =
-  useState<SimulationSessionDetail | null>(null);
+    useState<SimulationSessionDetail | null>(null);
 
-  const [selectedDomainId, setSelectedDomainId] =
-    useState<string | null>(null);
+  const [selectedDomainId, setSelectedDomainId] = useState<string | null>(null);
 
-  const [selectedScenarioId, setSelectedScenarioId] =
-    useState<string | null>(null);
+  const [selectedScenarioId, setSelectedScenarioId] = useState<string | null>(
+    null,
+  );
 
   const [loading, setLoading] = useState(true);
-  const [loadingScenarios, setLoadingScenarios] =
-    useState(false);
+  const [loadingScenarios, setLoadingScenarios] = useState(false);
 
   const [error, setError] = useState("");
 
@@ -60,19 +58,16 @@ export default function SimulationView() {
         setLoading(true);
         setError("");
 
-        const data =
-          await getSimulationDomains();
+        const data = await getSimulationDomains();
 
-        setDomains(
-          data.filter((domain) => domain.isActive)
-        );
+        setDomains(data.filter((domain) => domain.isActive));
       } catch (err) {
         console.error(err);
 
         setError(
           err instanceof Error
             ? err.message
-            : "Failed to load simulation domains."
+            : "Failed to load simulation domains.",
         );
       } finally {
         setLoading(false);
@@ -82,207 +77,160 @@ export default function SimulationView() {
     loadDomains();
   }, []);
 
-  
   useEffect(() => {
     const storedSession = sessionStorage.getItem(
-        "lms_active_simulation_session"
+      "lms_active_simulation_session",
     );
 
     if (!storedSession || !assessmentAttemptId) {
-        return;
+      return;
     }
 
     try {
-        const parsedSession =
-        JSON.parse(storedSession) as SimulationSession;
+      const parsedSession = JSON.parse(storedSession) as SimulationSession;
 
-        const storedAssessmentAttemptId =
-        sessionStorage.getItem(
-            "lms_active_simulation_assessment_attempt"
-        );
+      const storedAssessmentAttemptId = sessionStorage.getItem(
+        "lms_active_simulation_assessment_attempt",
+      );
 
-        if (
-        storedAssessmentAttemptId ===
-        assessmentAttemptId
-        ) {
+      if (storedAssessmentAttemptId === assessmentAttemptId) {
         setSession(parsedSession);
-        }
+      }
     } catch (err) {
-        console.error(
-        "Failed to restore simulation session:",
-        err
-        );
+      console.error("Failed to restore simulation session:", err);
 
-        sessionStorage.removeItem(
-        "lms_active_simulation_session"
-        );
+      sessionStorage.removeItem("lms_active_simulation_session");
 
-        sessionStorage.removeItem(
-        "lms_active_simulation_assessment_attempt"
-        );
+      sessionStorage.removeItem("lms_active_simulation_assessment_attempt");
     }
-    }, [assessmentAttemptId]);
+  }, [assessmentAttemptId]);
 
-  async function handleSelectDomain(
-        domainId: string
-    ) {
-        try {
-        setSelectedDomainId(domainId);
-        setSelectedScenarioId(null);
-        setScenarios([]);
-        setLoadingScenarios(true);
-        setError("");
+  async function handleSelectDomain(domainId: string) {
+    try {
+      setSelectedDomainId(domainId);
+      setSelectedScenarioId(null);
+      setScenarios([]);
+      setLoadingScenarios(true);
+      setError("");
 
-        const data =
-            await getSimulationScenariosByDomain(
-            domainId
-            );
+      const data = await getSimulationScenariosByDomain(domainId);
 
-        setScenarios(
-            data.filter(
-            (scenario) => scenario.isActive
-            )
-        );
-        } catch (err) {
-        console.error(err);
+      setScenarios(data.filter((scenario) => scenario.isActive));
+    } catch (err) {
+      console.error(err);
 
-        setError(
-            err instanceof Error
-            ? err.message
-            : "Failed to load simulation scenarios."
-        );
-        } finally {
-        setLoadingScenarios(false);
-        }
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to load simulation scenarios.",
+      );
+    } finally {
+      setLoadingScenarios(false);
     }
+  }
 
-    async function handleContinue() {
+  async function handleContinue() {
     if (!assessmentAttemptId) {
-        setError(
-        "Assessment attempt was not found. Please complete the theory assessment first."
-        );
-        return;
+      setError(
+        "Assessment attempt was not found. Please complete the theory assessment first.",
+      );
+      return;
     }
 
     if (!selectedScenarioId) {
-        setError(
-        "Please select a simulation scenario."
-        );
-        return;
+      setError("Please select a simulation scenario.");
+      return;
     }
 
     try {
-        setIsCreatingSession(true);
-        setError("");
+      setIsCreatingSession(true);
+      setError("");
 
-        const response =
-            await createSimulationSession({
-                assessmentAttemptId,
-                simulationScenarioId:
-                selectedScenarioId,
-            });
+      const response = await createSimulationSession({
+        assessmentAttemptId,
+        simulationScenarioId: selectedScenarioId,
+      });
 
-        setSession(response);
+      setSession(response);
 
-        sessionStorage.setItem(
-            "lms_active_simulation_session",
-            JSON.stringify(response)
-        );
+      sessionStorage.setItem(
+        "lms_active_simulation_session",
+        JSON.stringify(response),
+      );
 
-        sessionStorage.setItem(
-            "lms_active_simulation_assessment_attempt",
-            assessmentAttemptId
-        );
-
+      sessionStorage.setItem(
+        "lms_active_simulation_assessment_attempt",
+        assessmentAttemptId,
+      );
     } catch (err) {
-        console.error(err);
+      console.error(err);
 
-        setError(
+      setError(
         err instanceof Error
-            ? err.message
-            : "Failed to create simulation session."
-        );
+          ? err.message
+          : "Failed to create simulation session.",
+      );
     } finally {
-        setIsCreatingSession(false);
+      setIsCreatingSession(false);
     }
-    }
-
-    useEffect(() => {
-  if (
-    !session?.sessionId ||
-    sessionDetail?.status === "COMPLETED"
-  ) {
-    return;
   }
 
-  let cancelled = false;
+  useEffect(() => {
+    if (!session?.sessionId || sessionDetail?.status === "COMPLETED") {
+      return;
+    }
 
-  async function refreshSession() {
-    try {
-      const data = await getSimulationSession(
-        session!.sessionId
-      );
+    let cancelled = false;
 
-      if (!cancelled) {
-        setSessionDetail(data);
+    async function refreshSession() {
+      try {
+        const data = await getSimulationSession(session!.sessionId);
+
+        if (!cancelled) {
+          setSessionDetail(data);
+        }
+      } catch (err) {
+        console.error("Failed to refresh simulation session:", err);
       }
-    } catch (err) {
-      console.error(
-        "Failed to refresh simulation session:",
-        err
-      );
     }
-  }
 
-  refreshSession();
+    refreshSession();
 
-  const intervalId = window.setInterval(
-    refreshSession,
-    5000
-  );
+    const intervalId = window.setInterval(refreshSession, 5000);
 
-  return () => {
-    cancelled = true;
-    window.clearInterval(intervalId);
-  };
-}, [session?.sessionId, sessionDetail?.status]);
-
+    return () => {
+      cancelled = true;
+      window.clearInterval(intervalId);
+    };
+  }, [session?.sessionId, sessionDetail?.status]);
 
   if (loading) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
-        <p className="text-sm text-slate-500">
-          Loading simulation training...
-        </p>
+        <LoadingState label="Loading simulation training..." />
       </div>
     );
   }
 
-
   return (
     <div className="space-y-8">
-      <div>
-        <p className="text-sm font-semibold text-[#006CB8]">
-          Simulator Training
-        </p>
-
-        <h1 className="mt-1 text-2xl font-bold text-slate-900">
-          Simulation
-        </h1>
-
-        <p className="mt-2 text-sm text-slate-500">
-          Select an operational domain and training
-          scenario to prepare your simulator session.
-        </p>
-      </div>
+      <PageHeader
+        title={<> Simulation </>}
+        description={
+          <>
+            {" "}
+            Select an operational domain and training scenario to prepare your
+            simulator session.{" "}
+          </>
+        }
+        eyebrow={<> Simulator Training </>}
+      />
 
       <div className="flex items-center gap-3 text-sm">
         <span className="rounded-full bg-[#006CB8] px-3 py-1.5 font-semibold text-white">
           1
         </span>
-        <span className="font-semibold text-slate-900">
-          Operational Domain
-        </span>
+        <span className="font-semibold text-slate-900">Operational Domain</span>
 
         <span className="text-slate-300">→</span>
 
@@ -298,36 +246,29 @@ export default function SimulationView() {
 
         <span
           className={
-            selectedDomainId
-              ? "font-semibold text-slate-900"
-              : "text-slate-400"
+            selectedDomainId ? "font-semibold text-slate-900" : "text-slate-400"
           }
         >
           Training Scenario
         </span>
 
-
         <span className="text-slate-300">→</span>
 
-            <span
-            className={`rounded-full px-3 py-1.5 font-semibold ${
-                session
-                ? "bg-[#006CB8] text-white"
-                : "bg-slate-100 text-slate-400"
-            }`}
-            >
-            3
-            </span>
+        <span
+          className={`rounded-full px-3 py-1.5 font-semibold ${
+            session ? "bg-[#006CB8] text-white" : "bg-slate-100 text-slate-400"
+          }`}
+        >
+          3
+        </span>
 
-            <span
-            className={
-                session
-                ? "font-semibold text-slate-900"
-                : "text-slate-400"
-            }
-            >
-            Session Ready
-            </span>
+        <span
+          className={
+            session ? "font-semibold text-slate-900" : "text-slate-400"
+          }
+        >
+          Session Ready
+        </span>
       </div>
 
       <section>
@@ -336,22 +277,18 @@ export default function SimulationView() {
         </h2>
 
         <p className="mt-1 text-sm text-slate-500">
-          Choose the environment for your simulator
-          training.
+          Choose the environment for your simulator training.
         </p>
 
         <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {domains.map((domain) => {
-            const selected =
-              selectedDomainId === domain.id;
+            const selected = selectedDomainId === domain.id;
 
             return (
               <button
                 key={domain.id}
                 type="button"
-                onClick={() =>
-                  handleSelectDomain(domain.id)
-                }
+                onClick={() => handleSelectDomain(domain.id)}
                 className={`rounded-2xl border p-5 text-left shadow-sm transition ${
                   selected
                     ? "border-[#006CB8] bg-blue-50"
@@ -360,9 +297,7 @@ export default function SimulationView() {
               >
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <h3 className="font-bold text-slate-900">
-                      {domain.name}
-                    </h3>
+                    <h3 className="font-bold text-slate-900">{domain.name}</h3>
 
                     <p className="mt-2 text-sm leading-6 text-slate-500">
                       {domain.description}
@@ -380,9 +315,7 @@ export default function SimulationView() {
 
                 <p className="mt-4 text-xs font-semibold text-[#006CB8]">
                   {domain.scenarioCount} training scenario
-                  {domain.scenarioCount === 1
-                    ? ""
-                    : "s"}
+                  {domain.scenarioCount === 1 ? "" : "s"}
                 </p>
               </button>
             );
@@ -397,30 +330,21 @@ export default function SimulationView() {
           </h2>
 
           <p className="mt-1 text-sm text-slate-500">
-            Choose the scenario you want to run on the
-            fleet safety simulator.
+            Choose the scenario you want to run on the fleet safety simulator.
           </p>
 
           {loadingScenarios ? (
-            <p className="mt-4 text-sm text-slate-500">
-              Loading scenarios...
-            </p>
+            <LoadingState label="Loading scenarios..." />
           ) : (
             <div className="mt-4 grid gap-4 md:grid-cols-2">
               {scenarios.map((scenario) => {
-                const selected =
-                  selectedScenarioId ===
-                  scenario.id;
+                const selected = selectedScenarioId === scenario.id;
 
                 return (
                   <button
                     key={scenario.id}
                     type="button"
-                    onClick={() =>
-                      setSelectedScenarioId(
-                        scenario.id
-                      )
-                    }
+                    onClick={() => setSelectedScenarioId(scenario.id)}
                     className={`rounded-2xl border p-5 text-left shadow-sm transition ${
                       selected
                         ? "border-[#006CB8] bg-blue-50"
@@ -466,136 +390,129 @@ export default function SimulationView() {
 
       {selectedScenarioId && !session && (
         <div className="flex justify-end">
-          <button
+          <Button
+            fullWidth={false}
             type="button"
             onClick={handleContinue}
             disabled={isCreatingSession}
             className="rounded-xl bg-[#006CB8] px-6 py-3 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-            {isCreatingSession
-                ? "Creating Session..."
-                : "Continue →"}
-            </button>
+          >
+            {isCreatingSession ? "Creating Session..." : "Continue →"}
+          </Button>
         </div>
       )}
 
       {session && (
         <section
-            className={`rounded-2xl border p-6 ${
+          className={`rounded-2xl border p-6 ${
             sessionDetail?.status === "COMPLETED"
-                ? "border-emerald-100 bg-emerald-50"
-                : sessionDetail?.status === "IN_PROGRESS"
+              ? "border-emerald-100 bg-emerald-50"
+              : sessionDetail?.status === "IN_PROGRESS"
                 ? "border-blue-100 bg-blue-50"
                 : "border-amber-100 bg-amber-50"
-            }`}
+          }`}
         >
-            <div className="flex items-start gap-4">
+          <div className="flex items-start gap-4">
             <div
-                className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-xl ${
+              className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-xl ${
                 sessionDetail?.status === "COMPLETED"
-                    ? "bg-emerald-100 text-emerald-700"
-                    : sessionDetail?.status === "IN_PROGRESS"
+                  ? "bg-emerald-100 text-emerald-700"
+                  : sessionDetail?.status === "IN_PROGRESS"
                     ? "bg-blue-100 text-blue-700"
                     : "bg-amber-100 text-amber-700"
-                }`}
+              }`}
             >
-                {sessionDetail?.status === "COMPLETED"
+              {sessionDetail?.status === "COMPLETED"
                 ? "✓"
                 : sessionDetail?.status === "IN_PROGRESS"
-                ? "▶"
-                : "⌛"}
+                  ? "▶"
+                  : "⌛"}
             </div>
 
             <div className="min-w-0 flex-1">
-                <p
+              <p
                 className={`text-sm font-semibold ${
-                    sessionDetail?.status === "COMPLETED"
+                  sessionDetail?.status === "COMPLETED"
                     ? "text-emerald-700"
                     : sessionDetail?.status === "IN_PROGRESS"
-                    ? "text-blue-700"
-                    : "text-amber-700"
+                      ? "text-blue-700"
+                      : "text-amber-700"
                 }`}
-                >
+              >
                 {sessionDetail?.status === "COMPLETED"
-                    ? "Simulation Completed"
-                    : sessionDetail?.status === "IN_PROGRESS"
+                  ? "Simulation Completed"
+                  : sessionDetail?.status === "IN_PROGRESS"
                     ? "Simulation In Progress"
                     : "Simulation Session Created"}
-                </p>
+              </p>
 
-                <h2 className="mt-1 text-xl font-bold text-slate-900">
+              <h2 className="mt-1 text-xl font-bold text-slate-900">
                 {sessionDetail?.status === "COMPLETED"
-                    ? "Training Completed"
-                    : sessionDetail?.status === "IN_PROGRESS"
+                  ? "Training Completed"
+                  : sessionDetail?.status === "IN_PROGRESS"
                     ? "Training In Progress"
                     : "Session Ready"}
-                </h2>
+              </h2>
 
-                <p className="mt-2 text-sm leading-6 text-slate-600">
+              <p className="mt-2 text-sm leading-6 text-slate-600">
                 {sessionDetail?.status === "COMPLETED"
-                    ? "Your simulator training has been completed. Your final performance evaluation is now available."
-                    : sessionDetail?.status === "IN_PROGRESS"
+                  ? "Your simulator training has been completed. Your final performance evaluation is now available."
+                  : sessionDetail?.status === "IN_PROGRESS"
                     ? "Your simulator training is currently in progress. Complete the session on the fleet safety simulator."
                     : "Your simulation session is ready. Continue your training using the fleet safety simulator."}
-                </p>
+              </p>
 
-                <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              <div className="mt-5 grid gap-3 sm:grid-cols-2">
                 <div className="rounded-xl bg-white p-4">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
                     Scenario
-                    </p>
+                  </p>
 
-                    <p className="mt-1 font-semibold text-slate-900">
+                  <p className="mt-1 font-semibold text-slate-900">
                     {sessionDetail?.simulationScenarioName ??
-                        session.scenarioName}
-                    </p>
+                      session.scenarioName}
+                  </p>
                 </div>
 
                 <div className="rounded-xl bg-white p-4">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
                     Status
-                    </p>
+                  </p>
 
-                    <p className="mt-1 font-semibold text-slate-900">
+                  <p className="mt-1 font-semibold text-slate-900">
                     {sessionDetail?.status ?? session.status}
-                    </p>
+                  </p>
                 </div>
-                </div>
+              </div>
 
-                <div className="mt-3 rounded-xl bg-white p-4">
+              <div className="mt-3 rounded-xl bg-white p-4">
                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                    Session ID
+                  Session ID
                 </p>
 
                 <p className="mt-1 break-all font-mono text-sm text-slate-700">
-                    {session.sessionId}
+                  {session.sessionId}
                 </p>
-                </div>
+              </div>
 
-                {sessionDetail?.status === "COMPLETED" && (
+              {sessionDetail?.status === "COMPLETED" && (
                 <div className="mt-5 flex justify-end">
-                    <Link
+                  <Link
                     href={`/performance?sessionId=${encodeURIComponent(
-                        session.sessionId
+                      session.sessionId,
                     )}`}
                     className="rounded-xl bg-[#006CB8] px-6 py-3 text-sm font-semibold text-white transition hover:opacity-90"
-                    >
+                  >
                     View Performance →
-                    </Link>
+                  </Link>
                 </div>
-                )}
+              )}
             </div>
-            </div>
+          </div>
         </section>
-        )}
-
-      {error && (
-        <div className="rounded-xl border border-red-100 bg-red-50 p-4">
-          <p className="text-sm font-medium text-red-700">
-            {error}
-          </p>
-        </div>
       )}
+
+      {error && <Alert>{error}</Alert>}
     </div>
   );
 }

@@ -1,4 +1,15 @@
 "use client";
+import Button from "@/components/ui/Button";
+
+import Alert from "@/components/shared/Alert";
+
+import LoadingState from "@/components/shared/LoadingState";
+
+import GlassCard from "@/components/shared/GlassCard";
+
+import PageHeader from "@/components/shared/PageHeader";
+
+import SummaryCard from "@/components/shared/MetricCard";
 
 import { useEffect, useMemo, useState } from "react";
 
@@ -48,8 +59,9 @@ export default function AdminAssessmentsView() {
   const [error, setError] = useState("");
 
   const [showAssessmentModal, setShowAssessmentModal] = useState(false);
-  const [editingAssessment, setEditingAssessment] =
-    useState<Assessment | null>(null);
+  const [editingAssessment, setEditingAssessment] = useState<Assessment | null>(
+    null,
+  );
 
   const [showQuestionModal, setShowQuestionModal] = useState(false);
   const [editingQuestion, setEditingQuestion] =
@@ -59,7 +71,7 @@ export default function AdminAssessmentsView() {
     type: "ASSESSMENT" | "QUESTION";
     id: string;
     name: string;
-    } | null>(null);
+  } | null>(null);
 
   const [deactivating, setDeactivating] = useState(false);
 
@@ -69,7 +81,7 @@ export default function AdminAssessmentsView() {
     const moduleGroups = await Promise.all(
       domains
         .filter((domain) => domain.isActive)
-        .map((domain) => getLearningModulesByDomain(domain.id))
+        .map((domain) => getLearningModulesByDomain(domain.id)),
     );
 
     const modules = moduleGroups
@@ -77,7 +89,7 @@ export default function AdminAssessmentsView() {
       .filter((module) => module.isActive)
       .sort((a, b) => {
         const domainCompare = a.trainingDomainName.localeCompare(
-          b.trainingDomainName
+          b.trainingDomainName,
         );
 
         if (domainCompare !== 0) {
@@ -111,16 +123,14 @@ export default function AdminAssessmentsView() {
 
       const data = await getAssessmentQuestions(assessmentId);
 
-      setQuestions(
-        [...data].sort((a, b) => a.order - b.order)
-      );
+      setQuestions([...data].sort((a, b) => a.order - b.order));
     } catch (err) {
       setQuestions([]);
 
       setError(
         err instanceof Error
           ? err.message
-          : "Failed to load assessment questions."
+          : "Failed to load assessment questions.",
       );
     } finally {
       setQuestionsLoading(false);
@@ -132,15 +142,12 @@ export default function AdminAssessmentsView() {
       setLoading(true);
       setError("");
 
-      await Promise.all([
-        loadLearningModules(),
-        loadAssessments(),
-      ]);
+      await Promise.all([loadLearningModules(), loadAssessments()]);
     } catch (err) {
       setError(
         err instanceof Error
           ? err.message
-          : "Failed to load assessment management."
+          : "Failed to load assessment management.",
       );
     } finally {
       setLoading(false);
@@ -171,22 +178,21 @@ export default function AdminAssessmentsView() {
       (assessment) =>
         assessment.title.toLowerCase().includes(keyword) ||
         assessment.learningModuleName.toLowerCase().includes(keyword) ||
-        assessment.type.toLowerCase().includes(keyword)
+        assessment.type.toLowerCase().includes(keyword),
     );
   }, [assessments, search]);
 
   const selectedAssessment =
-    assessments.find(
-      (assessment) => assessment.id === selectedAssessmentId
-    ) ?? null;
+    assessments.find((assessment) => assessment.id === selectedAssessmentId) ??
+    null;
 
   const activeCount = assessments.filter(
-    (assessment) => assessment.isActive
+    (assessment) => assessment.isActive,
   ).length;
 
   const totalQuestions = assessments.reduce(
     (total, assessment) => total + assessment.questionCount,
-    0
+    0,
   );
 
   async function handleSaveAssessment(data: AssessmentRequest) {
@@ -202,26 +208,21 @@ export default function AdminAssessmentsView() {
     await loadAssessments();
   }
 
-    function handleDeactivateAssessment(assessment: Assessment) {
+  function handleDeactivateAssessment(assessment: Assessment) {
     setConfirmAction({
-        type: "ASSESSMENT",
-        id: assessment.id,
-        name: assessment.title,
+      type: "ASSESSMENT",
+      id: assessment.id,
+      name: assessment.title,
     });
-    }
+  }
 
-  async function handleSaveQuestion(
-    data: UpdateAssessmentQuestionRequest
-  ) {
+  async function handleSaveQuestion(data: UpdateAssessmentQuestionRequest) {
     if (!selectedAssessmentId) {
       throw new Error("No assessment selected.");
     }
 
     if (editingQuestion) {
-      await updateAssessmentQuestion(
-        editingQuestion.id,
-        data
-      );
+      await updateAssessmentQuestion(editingQuestion.id, data);
     } else {
       await createAssessmentQuestion({
         assessmentId: selectedAssessmentId,
@@ -232,130 +233,101 @@ export default function AdminAssessmentsView() {
     setShowQuestionModal(false);
     setEditingQuestion(null);
 
-    await Promise.all([
-      loadQuestions(selectedAssessmentId),
-      loadAssessments(),
-    ]);
+    await Promise.all([loadQuestions(selectedAssessmentId), loadAssessments()]);
   }
 
-    function handleDeactivateQuestion(question: AssessmentQuestion) {
+  function handleDeactivateQuestion(question: AssessmentQuestion) {
     setConfirmAction({
-        type: "QUESTION",
-        id: question.id,
-        name: question.questionText,
+      type: "QUESTION",
+      id: question.id,
+      name: question.questionText,
     });
-    }
+  }
 
   async function handleConfirmDeactivate() {
     if (!confirmAction) return;
 
     try {
-        setDeactivating(true);
-        setError("");
+      setDeactivating(true);
+      setError("");
 
-        if (confirmAction.type === "ASSESSMENT") {
+      if (confirmAction.type === "ASSESSMENT") {
         await deactivateAssessment(confirmAction.id);
 
         setConfirmAction(null);
 
         await loadAssessments();
         return;
-        }
+      }
 
-        await deactivateAssessmentQuestion(confirmAction.id);
+      await deactivateAssessmentQuestion(confirmAction.id);
 
-        setConfirmAction(null);
+      setConfirmAction(null);
 
-        if (selectedAssessmentId) {
+      if (selectedAssessmentId) {
         await Promise.all([
-            loadQuestions(selectedAssessmentId),
-            loadAssessments(),
+          loadQuestions(selectedAssessmentId),
+          loadAssessments(),
         ]);
-        }
+      }
     } catch (err) {
-        setError(
-        err instanceof Error
-            ? err.message
-            : "Failed to deactivate item."
-        );
+      setError(
+        err instanceof Error ? err.message : "Failed to deactivate item.",
+      );
     } finally {
-        setDeactivating(false);
+      setDeactivating(false);
     }
-    }
-
+  }
 
   if (loading) {
-    return (
-      <div className="p-8 text-sm text-slate-500">
-        Loading assessment management...
-      </div>
-    );
+    return <LoadingState label="Loading assessment management..." />;
   }
 
   return (
     <div className="space-y-6 p-6 lg:p-8">
       <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">
-            Assessment Management
-          </h1>
+        <PageHeader
+          title={<> Assessment Management </>}
+          description={<> Manage theory assessments and their questions. </>}
+        />
 
-          <p className="mt-1 text-sm text-slate-500">
-            Manage theory assessments and their questions.
-          </p>
-        </div>
-
-        <button
+        <Button
+          fullWidth={false}
           type="button"
           onClick={() => {
             setEditingAssessment(null);
             setShowAssessmentModal(true);
           }}
           disabled={learningModules.length === 0}
-          className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-xl bg-[#006CB8] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#005a9c] disabled:cursor-not-allowed disabled:opacity-50"
         >
           + Add Assessment
-        </button>
+        </Button>
       </div>
 
-      {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {error}
-        </div>
-      )}
+      {error && <Alert>{error}</Alert>}
 
       {learningModules.length === 0 && (
         <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
-          No active learning modules are available. Create a learning
-          module before adding an assessment.
+          No active learning modules are available. Create a learning module
+          before adding an assessment.
         </div>
       )}
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <SummaryCard
-          label="Total Assessments"
-          value={assessments.length}
-        />
+        <SummaryCard label="Total Assessments" value={assessments.length} />
 
-        <SummaryCard
-          label="Active Assessments"
-          value={activeCount}
-        />
+        <SummaryCard label="Active Assessments" value={activeCount} />
 
-        <SummaryCard
-          label="Total Questions"
-          value={totalQuestions}
-        />
+        <SummaryCard label="Total Questions" value={totalQuestions} />
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[0.85fr_1.15fr]">
-        <section className="rounded-2xl border border-slate-200 bg-white">
+        <GlassCard as="section" className="">
           <div className="border-b border-slate-100 p-5">
             <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
               <div>
-                <h2 className="font-semibold text-slate-900">
-                  Assessments
-                </h2>
+                <h2 className="font-semibold text-slate-900">Assessments</h2>
 
                 <p className="mt-1 text-sm text-slate-500">
                   Select an assessment to manage its questions.
@@ -378,20 +350,15 @@ export default function AdminAssessmentsView() {
               </div>
             ) : (
               filteredAssessments.map((assessment) => {
-                const selected =
-                  selectedAssessmentId === assessment.id;
+                const selected = selectedAssessmentId === assessment.id;
 
                 return (
                   <button
                     key={assessment.id}
                     type="button"
-                    onClick={() =>
-                      setSelectedAssessmentId(assessment.id)
-                    }
+                    onClick={() => setSelectedAssessmentId(assessment.id)}
                     className={`w-full p-5 text-left transition ${
-                      selected
-                        ? "bg-blue-50"
-                        : "hover:bg-slate-50"
+                      selected ? "bg-blue-50" : "hover:bg-slate-50"
                     }`}
                   >
                     <div className="flex items-start justify-between gap-4">
@@ -401,9 +368,7 @@ export default function AdminAssessmentsView() {
                             {assessment.title}
                           </h3>
 
-                          <StatusBadge
-                            active={assessment.isActive}
-                          />
+                          <StatusBadge active={assessment.isActive} />
                         </div>
 
                         <p className="mt-1 text-sm text-slate-500">
@@ -425,18 +390,16 @@ export default function AdminAssessmentsView() {
                         </div>
                       </div>
 
-                      <span className="text-slate-400">
-                        ›
-                      </span>
+                      <span className="text-slate-400">›</span>
                     </div>
                   </button>
                 );
               })
             )}
           </div>
-        </section>
+        </GlassCard>
 
-        <section className="rounded-2xl border border-slate-200 bg-white">
+        <GlassCard as="section" className="">
           {!selectedAssessment ? (
             <div className="flex min-h-80 items-center justify-center p-8 text-center text-sm text-slate-500">
               Select an assessment to manage its questions.
@@ -446,7 +409,7 @@ export default function AdminAssessmentsView() {
               <div className="border-b border-slate-100 p-5">
                 <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-wider text-blue-600">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-[#006CB8]">
                       Assessment
                     </p>
 
@@ -463,9 +426,7 @@ export default function AdminAssessmentsView() {
                     <button
                       type="button"
                       onClick={() => {
-                        setEditingAssessment(
-                          selectedAssessment
-                        );
+                        setEditingAssessment(selectedAssessment);
 
                         setShowAssessmentModal(true);
                       }}
@@ -478,9 +439,7 @@ export default function AdminAssessmentsView() {
                       <button
                         type="button"
                         onClick={() =>
-                          handleDeactivateAssessment(
-                            selectedAssessment
-                          )
+                          handleDeactivateAssessment(selectedAssessment)
                         }
                         className="rounded-xl border border-red-200 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
                       >
@@ -504,22 +463,17 @@ export default function AdminAssessmentsView() {
                   </span>
 
                   <span className="rounded-lg bg-slate-100 px-2.5 py-1">
-                    Max attempts:{" "}
-                    {selectedAssessment.maxAttempts}
+                    Max attempts: {selectedAssessment.maxAttempts}
                   </span>
 
-                  <StatusBadge
-                    active={selectedAssessment.isActive}
-                  />
+                  <StatusBadge active={selectedAssessment.isActive} />
                 </div>
               </div>
 
               <div>
                 <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
                   <div>
-                    <h3 className="font-semibold text-slate-900">
-                      Questions
-                    </h3>
+                    <h3 className="font-semibold text-slate-900">Questions</h3>
 
                     <p className="mt-1 text-xs text-slate-500">
                       {questions.length} question
@@ -527,23 +481,22 @@ export default function AdminAssessmentsView() {
                     </p>
                   </div>
 
-                  <button
+                  <Button
+                    fullWidth={false}
                     type="button"
                     onClick={() => {
                       setEditingQuestion(null);
                       setShowQuestionModal(true);
                     }}
                     disabled={!selectedAssessment.isActive}
-                    className="rounded-xl bg-blue-600 px-3.5 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="rounded-xl bg-[#006CB8] px-3.5 py-2 text-sm font-medium text-white hover:bg-[#005a9c] disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     + Add Question
-                  </button>
+                  </Button>
                 </div>
 
                 {questionsLoading ? (
-                  <div className="p-8 text-center text-sm text-slate-500">
-                    Loading questions...
-                  </div>
+                  <LoadingState label="Loading questions..." />
                 ) : questions.length === 0 ? (
                   <div className="p-8 text-center">
                     <p className="text-sm font-medium text-slate-700">
@@ -551,8 +504,7 @@ export default function AdminAssessmentsView() {
                     </p>
 
                     <p className="mt-1 text-xs text-slate-500">
-                      Add the first question for this
-                      assessment.
+                      Add the first question for this assessment.
                     </p>
                   </div>
                 ) : (
@@ -565,9 +517,7 @@ export default function AdminAssessmentsView() {
                           setEditingQuestion(question);
                           setShowQuestionModal(true);
                         }}
-                        onDeactivate={() =>
-                          handleDeactivateQuestion(question)
-                        }
+                        onDeactivate={() => handleDeactivateQuestion(question)}
                       />
                     ))}
                   </div>
@@ -575,7 +525,7 @@ export default function AdminAssessmentsView() {
               </div>
             </>
           )}
-        </section>
+        </GlassCard>
       </div>
 
       {showAssessmentModal && (
@@ -604,24 +554,24 @@ export default function AdminAssessmentsView() {
       <ConfirmModal
         open={confirmAction !== null}
         title={
-            confirmAction?.type === "QUESTION"
+          confirmAction?.type === "QUESTION"
             ? "Deactivate Question?"
             : "Deactivate Assessment?"
         }
         message={
-            confirmAction
+          confirmAction
             ? `Are you sure you want to deactivate "${confirmAction.name}"? This item will no longer be available for active use.`
             : ""
         }
         confirmLabel="Deactivate"
         loading={deactivating}
         onCancel={() => {
-            if (!deactivating) {
+          if (!deactivating) {
             setConfirmAction(null);
-            }
+          }
         }}
         onConfirm={handleConfirmDeactivate}
-        />
+      />
     </div>
   );
 }
@@ -635,9 +585,7 @@ function QuestionCard({
   onEdit: () => void;
   onDeactivate: () => void;
 }) {
-  const sortedOptions = [...question.options].sort(
-    (a, b) => a.order - b.order
-  );
+  const sortedOptions = [...question.options].sort((a, b) => a.order - b.order);
 
   return (
     <div className="p-5">
@@ -656,7 +604,7 @@ function QuestionCard({
           </div>
 
           {question.mediaUrl && (
-            <p className="mt-2 break-all text-xs text-blue-600">
+            <p className="mt-2 break-all text-xs text-[#006CB8]">
               Media: {question.mediaUrl}
             </p>
           )}
@@ -723,23 +671,6 @@ function QuestionCard({
           )}
         </div>
       </div>
-    </div>
-  );
-}
-
-function SummaryCard({
-  label,
-  value,
-}: {
-  label: string;
-  value: number;
-}) {
-  return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5">
-      <p className="text-sm text-slate-500">{label}</p>
-      <p className="mt-2 text-2xl font-bold text-slate-900">
-        {value}
-      </p>
     </div>
   );
 }

@@ -1,4 +1,11 @@
 "use client";
+import Alert from "@/components/shared/Alert";
+
+import LoadingState from "@/components/shared/LoadingState";
+
+import GlassCard from "@/components/shared/GlassCard";
+
+import PageHeader from "@/components/shared/PageHeader";
 
 import { useEffect, useState } from "react";
 
@@ -10,8 +17,7 @@ import { getParticipantDashboard } from "@/services/dashboard.service";
 import type { ParticipantDashboardResponse } from "@/types/dashboard";
 
 export default function ParticipantDashboardView() {
-  const [data, setData] =
-    useState<ParticipantDashboardResponse | null>(null);
+  const [data, setData] = useState<ParticipantDashboardResponse | null>(null);
 
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
@@ -23,9 +29,7 @@ export default function ParticipantDashboardView() {
         setData(response);
       } catch (err) {
         setError(
-          err instanceof Error
-            ? err.message
-            : "Failed to load dashboard."
+          err instanceof Error ? err.message : "Failed to load dashboard.",
         );
       } finally {
         setIsLoading(false);
@@ -36,19 +40,11 @@ export default function ParticipantDashboardView() {
   }, []);
 
   if (isLoading) {
-    return (
-      <p className="text-slate-500">
-        Loading dashboard...
-      </p>
-    );
+    return <LoadingState label="Loading dashboard..." />;
   }
 
   if (error) {
-    return (
-      <div className="rounded-xl bg-red-50 p-4 text-sm text-red-700">
-        {error}
-      </div>
-    );
+    return <Alert>{error}</Alert>;
   }
 
   if (!data) {
@@ -58,15 +54,11 @@ export default function ParticipantDashboardView() {
   return (
     <div className="space-y-8">
       {/* Page Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900">
-          Dashboard
-        </h1>
-
-        <p className="mt-1 text-sm text-slate-500">
-          Track your training progress and performance.
-        </p>
-      </div>
+      <PageHeader
+        tone="brand"
+        title={<> Dashboard </>}
+        description={<> Track your training progress and performance. </>}
+      />
 
       {/* Metrics */}
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -93,16 +85,14 @@ export default function ParticipantDashboardView() {
       </div>
 
       {/* Learning Progress */}
-      <section className="rounded-2xl border border-slate-200 bg-white p-6">
+      <GlassCard as="section" className="p-6">
         <div className="flex items-center justify-between gap-6">
           <div>
-            <h2 className="font-semibold text-slate-900">
-              Learning Progress
-            </h2>
+            <h2 className="font-semibold text-slate-900">Learning Progress</h2>
 
             <p className="mt-1 text-sm text-slate-500">
-              {data.completedLearningContents} of{" "}
-              {data.totalLearningContents} learning contents completed
+              {data.completedLearningContents} of {data.totalLearningContents}{" "}
+              learning contents completed
             </p>
           </div>
 
@@ -112,11 +102,9 @@ export default function ParticipantDashboardView() {
         </div>
 
         <div className="mt-4">
-          <ProgressBar
-            value={data.learningProgressPercentage}
-          />
+          <ProgressBar value={data.learningProgressPercentage} />
         </div>
-      </section>
+      </GlassCard>
 
       {/* Latest Training */}
       {data.latestTraining && (
@@ -125,7 +113,7 @@ export default function ParticipantDashboardView() {
             Latest Training
           </h2>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-6">
+          <GlassCard className="p-6">
             <div className="flex flex-col justify-between gap-6 md:flex-row md:items-center">
               <div>
                 <p className="font-semibold text-slate-900">
@@ -139,9 +127,7 @@ export default function ParticipantDashboardView() {
 
               <div className="flex items-center gap-8">
                 <div>
-                  <p className="text-xs text-slate-500">
-                    Overall Score
-                  </p>
+                  <p className="text-xs text-slate-500">Overall Score</p>
 
                   <p className="mt-1 text-xl font-bold text-slate-900">
                     {data.latestTraining.overallScore}
@@ -149,19 +135,15 @@ export default function ParticipantDashboardView() {
                 </div>
 
                 <div>
-                  <p className="text-xs text-slate-500">
-                    Result
-                  </p>
+                  <p className="text-xs text-slate-500">Result</p>
 
                   <div className="mt-2">
-                    <StatusBadge
-                      status={data.latestTraining.result}
-                    />
+                    <StatusBadge status={data.latestTraining.result} />
                   </div>
                 </div>
               </div>
             </div>
-          </div>
+          </GlassCard>
         </section>
       )}
 
@@ -171,7 +153,7 @@ export default function ParticipantDashboardView() {
           Recent Trainings
         </h2>
 
-        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+        <GlassCard className="overflow-hidden">
           {data.recentTrainings.length === 0 ? (
             <div className="p-6 text-sm text-slate-500">
               No training history yet.
@@ -195,24 +177,20 @@ export default function ParticipantDashboardView() {
 
                   <div className="flex items-center gap-6">
                     <div className="text-right">
-                      <p className="text-xs text-slate-500">
-                        Score
-                      </p>
+                      <p className="text-xs text-slate-500">Score</p>
 
                       <p className="mt-1 font-semibold text-slate-900">
                         {training.overallScore}
                       </p>
                     </div>
 
-                    <StatusBadge
-                      status={training.result}
-                    />
+                    <StatusBadge status={training.result} />
                   </div>
                 </div>
               ))}
             </div>
           )}
-        </div>
+        </GlassCard>
       </section>
     </div>
   );

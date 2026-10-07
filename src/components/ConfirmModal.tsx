@@ -1,4 +1,5 @@
 "use client";
+import ModalFrame from "@/components/shared/ModalFrame";
 
 interface ConfirmModalProps {
   open: boolean;
@@ -28,7 +29,7 @@ export default function ConfirmModal({
   const isSuccess = variant === "success";
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/40 p-4">
+    <ModalFrame title={title} onClose={onCancel} busy={loading}>
       <div className="w-full max-w-md rounded-2xl bg-white shadow-xl">
         <div className="p-6">
           <div
@@ -41,13 +42,9 @@ export default function ConfirmModal({
             {isSuccess ? "✓" : "!"}
           </div>
 
-          <h2 className="text-lg font-semibold text-slate-900">
-            {title}
-          </h2>
+          <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
 
-          <p className="mt-2 text-sm leading-6 text-slate-500">
-            {message}
-          </p>
+          <p className="mt-2 text-sm leading-6 text-slate-500">{message}</p>
         </div>
 
         <div className="flex justify-end gap-3 border-t border-slate-100 px-6 py-4">
@@ -74,6 +71,6 @@ export default function ConfirmModal({
           </button>
         </div>
       </div>
-    </div>
+    </ModalFrame>
   );
 }

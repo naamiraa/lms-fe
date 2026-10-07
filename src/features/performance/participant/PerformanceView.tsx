@@ -1,4 +1,9 @@
 "use client";
+import LoadingState from "@/components/shared/LoadingState";
+
+import GlassCard from "@/components/shared/GlassCard";
+
+import PageHeader from "@/components/shared/PageHeader";
 
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
@@ -17,17 +22,16 @@ function formatEventTime(seconds: number) {
   const minutes = Math.floor(seconds / 60);
   const remainingSeconds = seconds % 60;
 
-  return `${minutes}:${remainingSeconds
-    .toString()
-    .padStart(2, "0")}`;
+  return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
 }
 
 export default function PerformanceView() {
   const searchParams = useSearchParams();
   const sessionId = searchParams.get("sessionId");
 
-  const [performance, setPerformance] =
-    useState<PerformanceEvaluation | null>(null);
+  const [performance, setPerformance] = useState<PerformanceEvaluation | null>(
+    null,
+  );
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -35,9 +39,7 @@ export default function PerformanceView() {
   useEffect(() => {
     async function loadPerformance() {
       if (!sessionId) {
-        setError(
-          "Simulation session was not found."
-        );
+        setError("Simulation session was not found.");
         setLoading(false);
         return;
       }
@@ -46,8 +48,7 @@ export default function PerformanceView() {
         setLoading(true);
         setError("");
 
-        const data =
-          await getPerformanceEvaluation(sessionId);
+        const data = await getPerformanceEvaluation(sessionId);
 
         setPerformance(data);
       } catch (err) {
@@ -56,7 +57,7 @@ export default function PerformanceView() {
         setError(
           err instanceof Error
             ? err.message
-            : "Failed to load performance evaluation."
+            : "Failed to load performance evaluation.",
         );
       } finally {
         setLoading(false);
@@ -69,9 +70,7 @@ export default function PerformanceView() {
   if (loading) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
-        <p className="text-sm text-slate-500">
-          Loading performance evaluation...
-        </p>
+        <LoadingState label="Loading performance evaluation..." />
       </div>
     );
   }
@@ -79,13 +78,9 @@ export default function PerformanceView() {
   if (error || !performance) {
     return (
       <div className="rounded-2xl border border-red-100 bg-red-50 p-5">
-        <p className="font-semibold text-red-700">
-          Unable to load performance
-        </p>
+        <p className="font-semibold text-red-700">Unable to load performance</p>
 
-        <p className="mt-1 text-sm text-red-600">
-          {error}
-        </p>
+        <p className="mt-1 text-sm text-red-600">{error}</p>
       </div>
     );
   }
@@ -94,20 +89,17 @@ export default function PerformanceView() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <p className="text-sm font-semibold text-[#006CB8]">
-          Training Result
-        </p>
-
-        <h1 className="mt-1 text-2xl font-bold text-slate-900">
-          Performance
-        </h1>
-
-        <p className="mt-2 text-sm text-slate-500">
-          Review your theory assessment and simulator
-          training performance.
-        </p>
-      </div>
+      <PageHeader
+        title={<> Performance </>}
+        description={
+          <>
+            {" "}
+            Review your theory assessment and simulator training
+            performance.{" "}
+          </>
+        }
+        eyebrow={<> Training Result </>}
+      />
 
       <section
         className={`rounded-2xl border p-6 ${
@@ -120,9 +112,7 @@ export default function PerformanceView() {
           <div>
             <p
               className={`text-sm font-semibold ${
-                passed
-                  ? "text-emerald-700"
-                  : "text-red-700"
+                passed ? "text-emerald-700" : "text-red-700"
               }`}
             >
               Final Result
@@ -130,14 +120,11 @@ export default function PerformanceView() {
 
             <h2 className="mt-1 text-3xl font-bold text-slate-900">
               {performance.overallScore.toFixed(2)}
-              <span className="text-lg text-slate-400">
-                /100
-              </span>
+              <span className="text-lg text-slate-400">/100</span>
             </h2>
 
             <p className="mt-2 text-sm text-slate-600">
-              {performance.domainName} ·{" "}
-              {performance.scenarioName}
+              {performance.domainName} · {performance.scenarioName}
             </p>
           </div>
 
@@ -154,15 +141,10 @@ export default function PerformanceView() {
       </section>
 
       <section>
-        <h2 className="text-lg font-bold text-slate-900">
-          Score Summary
-        </h2>
+        <h2 className="text-lg font-bold text-slate-900">Score Summary</h2>
 
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <ScoreCard
-            label="Theory Score"
-            value={performance.theoryScore}
-          />
+          <ScoreCard label="Theory Score" value={performance.theoryScore} />
 
           <ScoreCard
             label="Simulator Score"
@@ -188,44 +170,32 @@ export default function PerformanceView() {
         </h2>
 
         <div className="mt-4 grid gap-4 md:grid-cols-3">
-          <ScoreCard
-            label="Safety"
-            value={performance.breakdown.safetyScore}
-          />
+          <ScoreCard label="Safety" value={performance.breakdown.safetyScore} />
 
           <ScoreCard
             label="Vehicle Control"
-            value={
-              performance.breakdown.vehicleControlScore
-            }
+            value={performance.breakdown.vehicleControlScore}
           />
 
           <ScoreCard
             label="Emergency Response"
-            value={
-              performance.breakdown
-                .emergencyResponseScore
-            }
+            value={performance.breakdown.emergencyResponseScore}
           />
         </div>
 
-        <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-5">
+        <GlassCard className="mt-4  p-5">
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
             Completion Time
           </p>
 
           <p className="mt-2 text-xl font-bold text-slate-900">
-            {formatDuration(
-              performance.completionTimeSeconds
-            )}
+            {formatDuration(performance.completionTimeSeconds)}
           </p>
-        </div>
+        </GlassCard>
       </section>
 
       <section>
-        <h2 className="text-lg font-bold text-slate-900">
-          Violation Timeline
-        </h2>
+        <h2 className="text-lg font-bold text-slate-900">Violation Timeline</h2>
 
         <p className="mt-1 text-sm text-slate-500">
           Events recorded during your simulator session.
@@ -240,18 +210,12 @@ export default function PerformanceView() {
         ) : (
           <div className="mt-4 space-y-3">
             {performance.events.map((event) => (
-              <div
-                key={event.eventId}
-                className="rounded-2xl border border-slate-200 bg-white p-5"
-              >
+              <GlassCard key={event.eventId} className="p-5">
                 <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
                       <p className="font-bold text-slate-900">
-                        {event.eventType.replaceAll(
-                          "_",
-                          " "
-                        )}
+                        {event.eventType.replaceAll("_", " ")}
                       </p>
 
                       <span className="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700">
@@ -266,9 +230,7 @@ export default function PerformanceView() {
 
                   <div className="shrink-0 text-left sm:text-right">
                     <p className="font-semibold text-slate-900">
-                      {formatEventTime(
-                        event.occurredAtSeconds
-                      )}
+                      {formatEventTime(event.occurredAtSeconds)}
                     </p>
 
                     <p className="mt-1 text-xs font-semibold text-red-600">
@@ -276,7 +238,7 @@ export default function PerformanceView() {
                     </p>
                   </div>
                 </div>
-              </div>
+              </GlassCard>
             ))}
           </div>
         )}
@@ -284,14 +246,14 @@ export default function PerformanceView() {
 
       <div className="flex justify-end">
         <Link
-            href={`/feedback?sessionId=${encodeURIComponent(
-            performance.simulationSessionId
-            )}`}
-            className="rounded-xl bg-[#006CB8] px-6 py-3 text-sm font-semibold text-white transition hover:opacity-90"
+          href={`/feedback?sessionId=${encodeURIComponent(
+            performance.simulationSessionId,
+          )}`}
+          className="rounded-xl bg-[#006CB8] px-6 py-3 text-sm font-semibold text-white transition hover:opacity-90"
         >
-            View Instructor Feedback →
+          View Instructor Feedback →
         </Link>
-        </div>
+      </div>
     </div>
   );
 }
@@ -302,13 +264,9 @@ interface ScoreCardProps {
   suffix?: string;
 }
 
-function ScoreCard({
-  label,
-  value,
-  suffix = "/100",
-}: ScoreCardProps) {
+function ScoreCard({ label, value, suffix = "/100" }: ScoreCardProps) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    <GlassCard className="p-5">
       <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
         {label}
       </p>
@@ -321,6 +279,6 @@ function ScoreCard({
           </span>
         )}
       </p>
-    </div>
+    </GlassCard>
   );
 }

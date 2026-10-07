@@ -1,13 +1,10 @@
 "use client";
+import LoadingState from "@/components/shared/LoadingState";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import {
-  getDashboardPath,
-  getToken,
-  getUser,
-} from "@/lib/auth";
+import { getDashboardPath, getToken, getUser } from "@/lib/auth";
 import type { UserRole } from "@/types/auth";
 
 interface RoleGuardProps {
@@ -15,10 +12,7 @@ interface RoleGuardProps {
   allowedRoles: UserRole[];
 }
 
-export default function RoleGuard({
-  children,
-  allowedRoles,
-}: RoleGuardProps) {
+export default function RoleGuard({ children, allowedRoles }: RoleGuardProps) {
   const router = useRouter();
   const [isAuthorized, setIsAuthorized] = useState(false);
 
@@ -32,7 +26,7 @@ export default function RoleGuard({
     }
 
     const hasAllowedRole = user.roles.some((role) =>
-      allowedRoles.includes(role)
+      allowedRoles.includes(role),
     );
 
     if (!hasAllowedRole) {
@@ -46,9 +40,7 @@ export default function RoleGuard({
   if (!isAuthorized) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50">
-        <p className="text-sm text-slate-500">
-          Loading...
-        </p>
+        <LoadingState label="Loading..." />
       </div>
     );
   }

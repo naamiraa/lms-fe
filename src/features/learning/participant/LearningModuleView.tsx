@@ -1,4 +1,7 @@
 "use client";
+import LoadingState from "@/components/shared/LoadingState";
+
+import GlassCard from "@/components/shared/GlassCard";
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -61,9 +64,7 @@ export default function LearningModuleView({
   if (isLoading) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
-        <p className="text-sm text-slate-500">
-          Loading learning module...
-        </p>
+        <LoadingState label="Loading learning module..." />
       </div>
     );
   }
@@ -101,12 +102,10 @@ export default function LearningModuleView({
         </p>
       </div>
 
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <GlassCard className="p-6">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <p className="font-semibold text-slate-900">
-              Module Progress
-            </p>
+            <p className="font-semibold text-slate-900">Module Progress</p>
 
             <p className="mt-1 text-sm text-slate-500">
               {progress.completedContents} of {progress.totalContents} contents
@@ -130,7 +129,7 @@ export default function LearningModuleView({
         <div className="mt-4">
           <ProgressBar value={progress.progressPercentage} />
         </div>
-      </div>
+      </GlassCard>
 
       <div>
         <div className="mb-4">
@@ -144,11 +143,11 @@ export default function LearningModuleView({
         </div>
 
         {contents.length === 0 ? (
-          <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center">
+          <GlassCard className="p-8 text-center">
             <p className="font-semibold text-slate-900">
               No learning content available
             </p>
-          </div>
+          </GlassCard>
         ) : (
           <div className="space-y-4">
             {contents.map((content, index) => {
@@ -193,9 +192,7 @@ export default function LearningModuleView({
                       </div>
                     </div>
 
-                    <div className="text-xl text-slate-400">
-                      →
-                    </div>
+                    <div className="text-xl text-slate-400">→</div>
                   </div>
                 </Link>
               );

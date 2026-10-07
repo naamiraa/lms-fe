@@ -1,4 +1,13 @@
 "use client";
+import Alert from "@/components/shared/Alert";
+
+import LoadingState from "@/components/shared/LoadingState";
+
+import DataTable from "@/components/shared/DataTable";
+
+import GlassCard from "@/components/shared/GlassCard";
+
+import PageHeader from "@/components/shared/PageHeader";
 
 import { useEffect, useState } from "react";
 
@@ -19,9 +28,7 @@ export default function AdminDashboardView() {
         setData(response);
       } catch (err) {
         setError(
-          err instanceof Error
-            ? err.message
-            : "Failed to load dashboard."
+          err instanceof Error ? err.message : "Failed to load dashboard.",
         );
       } finally {
         setIsLoading(false);
@@ -32,19 +39,11 @@ export default function AdminDashboardView() {
   }, []);
 
   if (isLoading) {
-    return (
-      <p className="text-slate-500">
-        Loading dashboard...
-      </p>
-    );
+    return <LoadingState label="Loading dashboard..." />;
   }
 
   if (error) {
-    return (
-      <div className="rounded-xl bg-red-50 p-4 text-sm text-red-700">
-        {error}
-      </div>
-    );
+    return <Alert>{error}</Alert>;
   }
 
   if (!data) {
@@ -53,26 +52,16 @@ export default function AdminDashboardView() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900">
-          Admin Dashboard
-        </h1>
-
-        <p className="mt-1 text-sm text-slate-500">
-          Overview of Fleet Safety LMS activity.
-        </p>
-      </div>
+      <PageHeader
+        tone="brand"
+        title={<> Admin Dashboard </>}
+        description={<> Overview of Fleet Safety LMS activity. </>}
+      />
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <MetricCard
-          label="Total Participants"
-          value={data.totalParticipants}
-        />
+        <MetricCard label="Total Participants" value={data.totalParticipants} />
 
-        <MetricCard
-          label="Total Instructors"
-          value={data.totalInstructors}
-        />
+        <MetricCard label="Total Instructors" value={data.totalInstructors} />
 
         <MetricCard
           label="Completed Simulations"
@@ -89,15 +78,9 @@ export default function AdminDashboardView() {
           value={data.pendingUserApprovals}
         />
 
-        <MetricCard
-          label="Pass Rate"
-          value={`${data.passRate}%`}
-        />
+        <MetricCard label="Pass Rate" value={`${data.passRate}%`} />
 
-        <MetricCard
-          label="Average Score"
-          value={data.averageOverallScore}
-        />
+        <MetricCard label="Average Score" value={data.averageOverallScore} />
 
         <MetricCard
           label="Passed / Failed"
@@ -110,22 +93,14 @@ export default function AdminDashboardView() {
           Scenario Performance
         </h2>
 
-        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
-          <table className="w-full text-left text-sm">
+        <GlassCard className="overflow-hidden">
+          <DataTable className="w-full text-left text-sm">
             <thead className="bg-slate-50 text-slate-600">
               <tr>
-                <th className="px-5 py-4">
-                  Scenario
-                </th>
-                <th className="px-5 py-4">
-                  Completed
-                </th>
-                <th className="px-5 py-4">
-                  Average Score
-                </th>
-                <th className="px-5 py-4">
-                  Pass Rate
-                </th>
+                <th className="px-5 py-4">Scenario</th>
+                <th className="px-5 py-4">Completed</th>
+                <th className="px-5 py-4">Average Score</th>
+                <th className="px-5 py-4">Pass Rate</th>
               </tr>
             </thead>
 
@@ -153,8 +128,8 @@ export default function AdminDashboardView() {
                 </tr>
               ))}
             </tbody>
-          </table>
-        </div>
+          </DataTable>
+        </GlassCard>
       </div>
     </div>
   );

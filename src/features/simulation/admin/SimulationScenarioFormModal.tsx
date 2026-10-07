@@ -1,4 +1,7 @@
 "use client";
+import ModalFrame from "@/components/shared/ModalFrame";
+
+import Button from "@/components/ui/Button";
 
 import { FormEvent, useEffect, useState } from "react";
 
@@ -40,7 +43,7 @@ export default function SimulationScenarioFormModal({
       scenario?.simulationDomainId ??
         defaultDomainId ??
         domains.find((domain) => domain.isActive)?.id ??
-        ""
+        "",
     );
 
     setName(scenario?.name ?? "");
@@ -64,13 +67,15 @@ export default function SimulationScenarioFormModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4">
+    <ModalFrame
+      title={"Manage Simulation Scenario"}
+      onClose={onClose}
+      busy={loading}
+    >
       <div className="w-full max-w-xl overflow-hidden rounded-2xl bg-white shadow-xl">
         <div className="border-b border-slate-100 px-6 py-5">
           <h2 className="text-lg font-semibold text-slate-900">
-            {scenario
-              ? "Edit Simulation Scenario"
-              : "Add Simulation Scenario"}
+            {scenario ? "Edit Simulation Scenario" : "Add Simulation Scenario"}
           </h2>
 
           <p className="mt-1 text-sm text-slate-500">
@@ -87,9 +92,7 @@ export default function SimulationScenarioFormModal({
 
               <select
                 value={simulationDomainId}
-                onChange={(event) =>
-                  setSimulationDomainId(event.target.value)
-                }
+                onChange={(event) => setSimulationDomainId(event.target.value)}
                 required
                 className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               >
@@ -99,7 +102,7 @@ export default function SimulationScenarioFormModal({
                   .filter(
                     (domain) =>
                       domain.isActive ||
-                      domain.id === scenario?.simulationDomainId
+                      domain.id === scenario?.simulationDomainId,
                   )
                   .map((domain) => (
                     <option key={domain.id} value={domain.id}>
@@ -152,9 +155,7 @@ export default function SimulationScenarioFormModal({
                   className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                 />
 
-                <p className="mt-1.5 text-xs text-slate-400">
-                  Optional
-                </p>
+                <p className="mt-1.5 text-xs text-slate-400">Optional</p>
               </div>
 
               <div>
@@ -192,7 +193,8 @@ export default function SimulationScenarioFormModal({
               Cancel
             </button>
 
-            <button
+            <Button
+              fullWidth={false}
               type="submit"
               disabled={
                 loading ||
@@ -200,17 +202,17 @@ export default function SimulationScenarioFormModal({
                 !name.trim() ||
                 estimatedMinutes < 1
               }
-              className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-xl bg-[#006CB8] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#005a9c] disabled:cursor-not-allowed disabled:opacity-50"
             >
               {loading
                 ? "Saving..."
                 : scenario
                   ? "Save Changes"
                   : "Create Scenario"}
-            </button>
+            </Button>
           </div>
         </form>
       </div>
-    </div>
+    </ModalFrame>
   );
 }

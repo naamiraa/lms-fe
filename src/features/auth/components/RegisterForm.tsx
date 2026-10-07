@@ -1,4 +1,5 @@
 "use client";
+import Alert from "@/components/shared/Alert";
 
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -20,9 +21,7 @@ export default function RegisterForm() {
   const [successMessage, setSuccessMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  async function handleSubmit(
-    event: FormEvent<HTMLFormElement>
-  ) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     setError("");
@@ -50,11 +49,7 @@ export default function RegisterForm() {
 
       setSuccessMessage(response.message);
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Registration failed."
-      );
+      setError(err instanceof Error ? err.message : "Registration failed.");
     } finally {
       setIsLoading(false);
     }
@@ -82,10 +77,7 @@ export default function RegisterForm() {
           </p>
         </div>
 
-        <Button
-          type="button"
-          onClick={() => router.push("/login")}
-        >
+        <Button type="button" onClick={() => router.push("/login")}>
           Back to Sign In
         </Button>
       </div>
@@ -93,18 +85,12 @@ export default function RegisterForm() {
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="space-y-5"
-    >
-      {error && (
-        <div className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
-          {error}
-        </div>
-      )}
+    <form onSubmit={handleSubmit} className="space-y-5">
+      {error && <Alert>{error}</Alert>}
 
       <Input
         id="name"
+        autoComplete="name"
         type="text"
         label="Full Name"
         placeholder="Enter your full name"
@@ -119,14 +105,13 @@ export default function RegisterForm() {
         label="Employee Number"
         placeholder="Enter employee number (optional)"
         value={employeeNumber}
-        onChange={(event) =>
-          setEmployeeNumber(event.target.value)
-        }
+        onChange={(event) => setEmployeeNumber(event.target.value)}
       />
 
       <Input
         id="email"
         type="email"
+        autoComplete="email"
         label="Email"
         placeholder="Enter your email"
         value={email}
@@ -137,6 +122,7 @@ export default function RegisterForm() {
       <Input
         id="password"
         type="password"
+        autoComplete="new-password"
         label="Password"
         placeholder="Create a password"
         value={password}
@@ -147,19 +133,15 @@ export default function RegisterForm() {
       <Input
         id="confirmPassword"
         type="password"
+        autoComplete="new-password"
         label="Confirm Password"
         placeholder="Confirm your password"
         value={confirmPassword}
-        onChange={(event) =>
-          setConfirmPassword(event.target.value)
-        }
+        onChange={(event) => setConfirmPassword(event.target.value)}
         required
       />
 
-      <Button
-        type="submit"
-        isLoading={isLoading}
-      >
+      <Button type="submit" isLoading={isLoading}>
         Create Account
       </Button>
 
@@ -168,7 +150,7 @@ export default function RegisterForm() {
         <button
           type="button"
           onClick={() => router.push("/login")}
-          className="font-semibold text-blue-600 hover:text-blue-700"
+          className="font-semibold text-[#006CB8] hover:text-[#005a9c]"
         >
           Sign In
         </button>

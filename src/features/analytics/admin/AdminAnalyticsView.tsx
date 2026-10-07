@@ -1,4 +1,15 @@
 "use client";
+import Alert from "@/components/shared/Alert";
+
+import LoadingState from "@/components/shared/LoadingState";
+
+import DataTable from "@/components/shared/DataTable";
+
+import GlassCard from "@/components/shared/GlassCard";
+
+import PageHeader from "@/components/shared/PageHeader";
+
+import MetricCard from "@/components/shared/MetricCard";
 
 import { useEffect, useState } from "react";
 
@@ -20,9 +31,7 @@ export default function AdminAnalyticsView() {
         setData(response);
       } catch (err) {
         setError(
-          err instanceof Error
-            ? err.message
-            : "Failed to load analytics."
+          err instanceof Error ? err.message : "Failed to load analytics.",
         );
       } finally {
         setLoading(false);
@@ -33,11 +42,7 @@ export default function AdminAnalyticsView() {
   }, []);
 
   if (loading) {
-    return (
-      <div className="flex min-h-[400px] items-center justify-center text-sm text-slate-500">
-        Loading analytics...
-      </div>
-    );
+    return <LoadingState label="Loading analytics..." />;
   }
 
   if (!data) {
@@ -48,36 +53,28 @@ export default function AdminAnalyticsView() {
     );
   }
 
-  const totalResults =
-    data.passedSimulations + data.failedSimulations;
+  const totalResults = data.passedSimulations + data.failedSimulations;
 
   const passedPercentage =
-    totalResults === 0
-      ? 0
-      : (data.passedSimulations / totalResults) * 100;
+    totalResults === 0 ? 0 : (data.passedSimulations / totalResults) * 100;
 
   const failedPercentage =
-    totalResults === 0
-      ? 0
-      : (data.failedSimulations / totalResults) * 100;
+    totalResults === 0 ? 0 : (data.failedSimulations / totalResults) * 100;
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900">
-          Analytics
-        </h1>
-        <p className="mt-1 text-sm text-slate-500">
-          Monitor training performance and simulation outcomes across
-          the Fleet Safety LMS.
-        </p>
-      </div>
+      <PageHeader
+        title={<> Analytics </>}
+        description={
+          <>
+            {" "}
+            Monitor training performance and simulation outcomes across the
+            Fleet Safety LMS.{" "}
+          </>
+        }
+      />
 
-      {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {error}
-        </div>
-      )}
+      {error && <Alert>{error}</Alert>}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard
@@ -106,7 +103,7 @@ export default function AdminAnalyticsView() {
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[0.9fr_1.4fr]">
-        <section className="rounded-2xl border border-slate-200 bg-white p-6">
+        <GlassCard as="section" className="p-6">
           <div>
             <h2 className="font-semibold text-slate-900">
               Performance Overview
@@ -152,9 +149,9 @@ export default function AdminAnalyticsView() {
               variant="danger"
             />
           </div>
-        </section>
+        </GlassCard>
 
-        <section className="rounded-2xl border border-slate-200 bg-white p-6">
+        <GlassCard as="section" className="p-6">
           <div>
             <h2 className="font-semibold text-slate-900">
               Scenario Performance
@@ -181,8 +178,7 @@ export default function AdminAnalyticsView() {
                         {scenario.scenarioName}
                       </h3>
                       <p className="mt-1 text-xs text-slate-500">
-                        {scenario.completedSimulations} completed
-                        simulation
+                        {scenario.completedSimulations} completed simulation
                         {scenario.completedSimulations === 1 ? "" : "s"}
                       </p>
                     </div>
@@ -203,26 +199,18 @@ export default function AdminAnalyticsView() {
                   <div className="mt-5 grid gap-4 sm:grid-cols-2">
                     <div>
                       <div className="flex items-center justify-between text-xs">
-                        <span className="text-slate-500">
-                          Average Score
-                        </span>
+                        <span className="text-slate-500">Average Score</span>
                         <span className="font-semibold text-slate-700">
-                          {formatNumber(
-                            scenario.averageOverallScore
-                          )}
+                          {formatNumber(scenario.averageOverallScore)}
                         </span>
                       </div>
 
-                      <ProgressBar
-                        value={scenario.averageOverallScore}
-                      />
+                      <ProgressBar value={scenario.averageOverallScore} />
                     </div>
 
                     <div>
                       <div className="flex items-center justify-between text-xs">
-                        <span className="text-slate-500">
-                          Pass Rate
-                        </span>
+                        <span className="text-slate-500">Pass Rate</span>
                         <span className="font-semibold text-slate-700">
                           {formatNumber(scenario.passRate)}%
                         </span>
@@ -235,35 +223,25 @@ export default function AdminAnalyticsView() {
               ))}
             </div>
           )}
-        </section>
+        </GlassCard>
       </div>
 
-      <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+      <GlassCard as="section" className="overflow-hidden">
         <div className="border-b border-slate-100 px-6 py-5">
-          <h2 className="font-semibold text-slate-900">
-            Scenario Analytics
-          </h2>
+          <h2 className="font-semibold text-slate-900">Scenario Analytics</h2>
           <p className="mt-1 text-sm text-slate-500">
             Detailed simulation performance metrics.
           </p>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
+          <DataTable className="w-full text-left text-sm">
             <thead className="bg-slate-50 text-xs uppercase text-slate-500">
               <tr>
-                <th className="px-6 py-3 font-semibold">
-                  Scenario
-                </th>
-                <th className="px-6 py-3 font-semibold">
-                  Completed
-                </th>
-                <th className="px-6 py-3 font-semibold">
-                  Average Score
-                </th>
-                <th className="px-6 py-3 font-semibold">
-                  Pass Rate
-                </th>
+                <th className="px-6 py-3 font-semibold">Scenario</th>
+                <th className="px-6 py-3 font-semibold">Completed</th>
+                <th className="px-6 py-3 font-semibold">Average Score</th>
+                <th className="px-6 py-3 font-semibold">Pass Rate</th>
               </tr>
             </thead>
 
@@ -296,29 +274,9 @@ export default function AdminAnalyticsView() {
                 </tr>
               )}
             </tbody>
-          </table>
+          </DataTable>
         </div>
-      </section>
-    </div>
-  );
-}
-
-function MetricCard({
-  label,
-  value,
-  detail,
-}: {
-  label: string;
-  value: string;
-  detail: string;
-}) {
-  return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5">
-      <p className="text-sm font-medium text-slate-500">{label}</p>
-      <p className="mt-2 text-3xl font-bold text-slate-900">
-        {value}
-      </p>
-      <p className="mt-1 text-xs text-slate-400">{detail}</p>
+      </GlassCard>
     </div>
   );
 }
@@ -343,9 +301,7 @@ function ResultCard({
     <div className={`rounded-xl p-4 ${styles}`}>
       <p className="text-xs font-semibold uppercase">{label}</p>
       <p className="mt-1 text-2xl font-bold">{value}</p>
-      <p className="mt-1 text-xs">
-        {formatNumber(percentage)}% of results
-      </p>
+      <p className="mt-1 text-xs">{formatNumber(percentage)}% of results</p>
     </div>
   );
 }
@@ -356,7 +312,7 @@ function ProgressBar({ value }: { value: number }) {
   return (
     <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100">
       <div
-        className="h-full rounded-full bg-blue-600 transition-all"
+        className="h-full rounded-full bg-[#006CB8] transition-all"
         style={{ width: `${safeValue}%` }}
       />
     </div>

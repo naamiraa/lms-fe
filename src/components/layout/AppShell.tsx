@@ -1,32 +1,24 @@
 import type { ReactNode } from "react";
-
 import Header from "@/components/layout/Header";
 import Sidebar from "@/components/layout/Sidebar";
-
-interface NavigationItem {
-  label: string;
-  href: string;
-}
-
-interface AppShellProps {
-  children: ReactNode;
-  navigation: NavigationItem[];
-}
-
 export default function AppShell({
   children,
   navigation,
-}: AppShellProps) {
+}: {
+  children: ReactNode;
+  navigation: { label: string; href: string }[];
+}) {
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="app-shell min-h-screen">
       <Sidebar items={navigation} />
-
-      <div className="ml-64 min-h-screen">
-        <Header />
-
-        <main className="p-8">
+      <div className="min-h-screen lg:ml-[296px]">
+        <Header navigation={navigation} />
+        <main className="workspace-content mx-auto max-w-[1600px] px-4 py-6 sm:px-8 sm:py-8 lg:pr-10">
           {children}
         </main>
+        <footer className="px-4 py-6 text-xs text-slate-400 sm:px-8">
+          Fleet Safety Simulator · Learning Management System
+        </footer>
       </div>
     </div>
   );

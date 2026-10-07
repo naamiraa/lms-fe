@@ -1,4 +1,9 @@
 "use client";
+import ModalFrame from "@/components/shared/ModalFrame";
+
+import Button from "@/components/ui/Button";
+
+import Alert from "@/components/shared/Alert";
 
 import { FormEvent, useEffect, useState } from "react";
 import type {
@@ -57,10 +62,8 @@ export default function QuestionFormModal({
   function updateOptionText(index: number, value: string) {
     setOptions((current) =>
       current.map((option, optionIndex) =>
-        optionIndex === index
-          ? { ...option, optionText: value }
-          : option
-      )
+        optionIndex === index ? { ...option, optionText: value } : option,
+      ),
     );
   }
 
@@ -69,7 +72,7 @@ export default function QuestionFormModal({
       current.map((option, optionIndex) => ({
         ...option,
         isCorrect: optionIndex === index,
-      }))
+      })),
     );
   }
 
@@ -134,9 +137,7 @@ export default function QuestionFormModal({
         options: cleanedOptions,
       });
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to save question."
-      );
+      setError(err instanceof Error ? err.message : "Failed to save question.");
     } finally {
       setSaving(false);
     }
@@ -145,11 +146,10 @@ export default function QuestionFormModal({
   const inputClass =
     "w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100";
 
-  const labelClass =
-    "mb-1.5 block text-sm font-medium text-slate-700";
+  const labelClass = "mb-1.5 block text-sm font-medium text-slate-700";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4">
+    <ModalFrame title={"Manage Question"} onClose={onClose} busy={saving}>
       <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl bg-white shadow-xl">
         <div className="flex items-center justify-between border-b border-slate-100 px-6 py-5">
           <div>
@@ -171,11 +171,7 @@ export default function QuestionFormModal({
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5 p-6">
-          {error && (
-            <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-              {error}
-            </div>
-          )}
+          {error && <Alert>{error}</Alert>}
 
           <div>
             <label className={labelClass}>Question</label>
@@ -227,7 +223,7 @@ export default function QuestionFormModal({
               <button
                 type="button"
                 onClick={addOption}
-                className="rounded-lg border border-blue-200 px-3 py-2 text-xs font-medium text-blue-600 hover:bg-blue-50"
+                className="rounded-lg border border-blue-200 px-3 py-2 text-xs font-medium text-[#006CB8] hover:bg-blue-50"
               >
                 + Add Option
               </button>
@@ -254,9 +250,7 @@ export default function QuestionFormModal({
                   <input
                     required
                     value={option.optionText}
-                    onChange={(e) =>
-                      updateOptionText(index, e.target.value)
-                    }
+                    onChange={(e) => updateOptionText(index, e.target.value)}
                     placeholder={`Option ${String.fromCharCode(65 + index)}`}
                     className={inputClass}
                   />
@@ -283,20 +277,21 @@ export default function QuestionFormModal({
               Cancel
             </button>
 
-            <button
+            <Button
+              fullWidth={false}
               type="submit"
               disabled={saving}
-              className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+              className="rounded-xl bg-[#006CB8] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#005a9c] disabled:opacity-50"
             >
               {saving
                 ? "Saving..."
                 : isEdit
                   ? "Save Changes"
                   : "Create Question"}
-            </button>
+            </Button>
           </div>
         </form>
       </div>
-    </div>
+    </ModalFrame>
   );
 }

@@ -1,4 +1,15 @@
 "use client";
+import Button from "@/components/ui/Button";
+
+import Alert from "@/components/shared/Alert";
+
+import LoadingState from "@/components/shared/LoadingState";
+
+import GlassCard from "@/components/shared/GlassCard";
+
+import PageHeader from "@/components/shared/PageHeader";
+
+import SummaryCard from "@/components/shared/MetricCard";
 
 import { useEffect, useMemo, useState } from "react";
 
@@ -28,8 +39,9 @@ export default function AdminSimulationsView() {
   const [scenarios, setScenarios] = useState<SimulationScenario[]>([]);
 
   const [selectedDomainId, setSelectedDomainId] = useState("");
-  const [editingDomain, setEditingDomain] =
-    useState<SimulationDomain | null>(null);
+  const [editingDomain, setEditingDomain] = useState<SimulationDomain | null>(
+    null,
+  );
   const [editingScenario, setEditingScenario] =
     useState<SimulationScenario | null>(null);
 
@@ -49,17 +61,17 @@ export default function AdminSimulationsView() {
 
   const selectedDomain = useMemo(
     () => domains.find((domain) => domain.id === selectedDomainId) ?? null,
-    [domains, selectedDomainId]
+    [domains, selectedDomainId],
   );
 
   const totalScenarios = domains.reduce(
     (total, domain) => total + domain.scenarioCount,
-    0
+    0,
   );
 
   const activeDomains = domains.filter((domain) => domain.isActive).length;
   const activeScenarios = scenarios.filter(
-    (scenario) => scenario.isActive
+    (scenario) => scenario.isActive,
   ).length;
 
   async function loadDomains() {
@@ -71,11 +83,7 @@ export default function AdminSimulationsView() {
         return current;
       }
 
-      return (
-        data.find((domain) => domain.isActive)?.id ??
-        data[0]?.id ??
-        ""
-      );
+      return data.find((domain) => domain.isActive)?.id ?? data[0]?.id ?? "";
     });
   }
 
@@ -94,7 +102,7 @@ export default function AdminSimulationsView() {
         setError(
           err instanceof Error
             ? err.message
-            : "Failed to load simulation management."
+            : "Failed to load simulation management.",
         );
       } finally {
         setLoading(false);
@@ -118,7 +126,7 @@ export default function AdminSimulationsView() {
         setError(
           err instanceof Error
             ? err.message
-            : "Failed to load simulation scenarios."
+            : "Failed to load simulation scenarios.",
         );
       }
     }
@@ -146,9 +154,7 @@ export default function AdminSimulationsView() {
     setScenarioModalOpen(true);
   }
 
-  async function handleDomainSubmit(
-    request: SimulationDomainRequest
-  ) {
+  async function handleDomainSubmit(request: SimulationDomainRequest) {
     try {
       setSaving(true);
       setError("");
@@ -167,16 +173,14 @@ export default function AdminSimulationsView() {
       setError(
         err instanceof Error
           ? err.message
-          : "Failed to save simulation domain."
+          : "Failed to save simulation domain.",
       );
     } finally {
       setSaving(false);
     }
   }
 
-  async function handleScenarioSubmit(
-    request: SimulationScenarioRequest
-  ) {
+  async function handleScenarioSubmit(request: SimulationScenarioRequest) {
     try {
       setSaving(true);
       setError("");
@@ -201,7 +205,7 @@ export default function AdminSimulationsView() {
       setError(
         err instanceof Error
           ? err.message
-          : "Failed to save simulation scenario."
+          : "Failed to save simulation scenario.",
       );
     } finally {
       setSaving(false);
@@ -242,16 +246,11 @@ export default function AdminSimulationsView() {
       setConfirmAction(null);
 
       if (selectedDomainId) {
-        await Promise.all([
-          loadScenarios(selectedDomainId),
-          loadDomains(),
-        ]);
+        await Promise.all([loadScenarios(selectedDomainId), loadDomains()]);
       }
     } catch (err) {
       setError(
-        err instanceof Error
-          ? err.message
-          : "Failed to deactivate item."
+        err instanceof Error ? err.message : "Failed to deactivate item.",
       );
     } finally {
       setDeactivating(false);
@@ -259,29 +258,17 @@ export default function AdminSimulationsView() {
   }
 
   if (loading) {
-    return (
-      <div className="flex min-h-[400px] items-center justify-center text-sm text-slate-500">
-        Loading simulation management...
-      </div>
-    );
+    return <LoadingState label="Loading simulation management..." />;
   }
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900">
-          Simulation Management
-        </h1>
-        <p className="mt-1 text-sm text-slate-500">
-          Manage simulator training domains and scenarios.
-        </p>
-      </div>
+      <PageHeader
+        title={<> Simulation Management </>}
+        description={<> Manage simulator training domains and scenarios. </>}
+      />
 
-      {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {error}
-        </div>
-      )}
+      {error && <Alert>{error}</Alert>}
 
       <div className="grid gap-4 md:grid-cols-3">
         <SummaryCard
@@ -298,15 +285,13 @@ export default function AdminSimulationsView() {
           label="Active Scenarios"
           value={activeScenarios}
           detail={
-            selectedDomain
-              ? `In ${selectedDomain.name}`
-              : "Select a domain"
+            selectedDomain ? `In ${selectedDomain.name}` : "Select a domain"
           }
         />
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[0.9fr_1.4fr]">
-        <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+        <GlassCard as="section" className="overflow-hidden">
           <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
             <div>
               <h2 className="font-semibold text-slate-900">
@@ -317,13 +302,14 @@ export default function AdminSimulationsView() {
               </p>
             </div>
 
-            <button
+            <Button
+              fullWidth={false}
               type="button"
               onClick={openCreateDomain}
-              className="rounded-xl bg-blue-600 px-3.5 py-2 text-sm font-medium text-white hover:bg-blue-700"
+              className="rounded-xl bg-[#006CB8] px-3.5 py-2 text-sm font-medium text-white hover:bg-[#005a9c]"
             >
               + Add Domain
-            </button>
+            </Button>
           </div>
 
           <div className="space-y-3 p-4">
@@ -378,9 +364,7 @@ export default function AdminSimulationsView() {
                       {domain.isActive && (
                         <button
                           type="button"
-                          onClick={() =>
-                            handleDeactivateDomain(domain)
-                          }
+                          onClick={() => handleDeactivateDomain(domain)}
                           className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50"
                         >
                           Deactivate
@@ -392,9 +376,9 @@ export default function AdminSimulationsView() {
               })
             )}
           </div>
-        </section>
+        </GlassCard>
 
-        <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+        <GlassCard as="section" className="overflow-hidden">
           <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
             <div>
               <h2 className="font-semibold text-slate-900">
@@ -407,14 +391,15 @@ export default function AdminSimulationsView() {
               </p>
             </div>
 
-            <button
+            <Button
+              fullWidth={false}
               type="button"
               onClick={openCreateScenario}
               disabled={!selectedDomainId}
-              className="rounded-xl bg-blue-600 px-3.5 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-xl bg-[#006CB8] px-3.5 py-2 text-sm font-medium text-white hover:bg-[#005a9c] disabled:cursor-not-allowed disabled:opacity-50"
             >
               + Add Scenario
-            </button>
+            </Button>
           </div>
 
           <div className="p-4">
@@ -465,9 +450,7 @@ export default function AdminSimulationsView() {
                       {scenario.isActive && (
                         <button
                           type="button"
-                          onClick={() =>
-                            handleDeactivateScenario(scenario)
-                          }
+                          onClick={() => handleDeactivateScenario(scenario)}
                           className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50"
                         >
                           Deactivate
@@ -479,7 +462,7 @@ export default function AdminSimulationsView() {
               </div>
             )}
           </div>
-        </section>
+        </GlassCard>
       </div>
 
       <SimulationDomainFormModal
@@ -531,24 +514,6 @@ export default function AdminSimulationsView() {
         }}
         onConfirm={handleConfirmDeactivate}
       />
-    </div>
-  );
-}
-
-function SummaryCard({
-  label,
-  value,
-  detail,
-}: {
-  label: string;
-  value: number;
-  detail: string;
-}) {
-  return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5">
-      <p className="text-sm font-medium text-slate-500">{label}</p>
-      <p className="mt-2 text-3xl font-bold text-slate-900">{value}</p>
-      <p className="mt-1 text-xs text-slate-400">{detail}</p>
     </div>
   );
 }

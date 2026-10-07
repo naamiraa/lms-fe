@@ -1,4 +1,9 @@
 "use client";
+import LoadingState from "@/components/shared/LoadingState";
+
+import GlassCard from "@/components/shared/GlassCard";
+
+import PageHeader from "@/components/shared/PageHeader";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -11,8 +16,7 @@ export default function FeedbackView() {
   const searchParams = useSearchParams();
   const sessionId = searchParams.get("sessionId");
 
-  const [feedback, setFeedback] =
-    useState<InstructorFeedback | null>(null);
+  const [feedback, setFeedback] = useState<InstructorFeedback | null>(null);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -21,7 +25,7 @@ export default function FeedbackView() {
     async function loadFeedback() {
       if (!sessionId) {
         setError(
-          "Simulation session was not found. Please complete your simulator training first."
+          "Simulation session was not found. Please complete your simulator training first.",
         );
         setLoading(false);
         return;
@@ -31,8 +35,7 @@ export default function FeedbackView() {
         setLoading(true);
         setError("");
 
-        const data =
-          await getInstructorFeedback(sessionId);
+        const data = await getInstructorFeedback(sessionId);
 
         setFeedback(data);
       } catch (err) {
@@ -41,7 +44,7 @@ export default function FeedbackView() {
         setError(
           err instanceof Error
             ? err.message
-            : "Failed to load instructor feedback."
+            : "Failed to load instructor feedback.",
         );
       } finally {
         setLoading(false);
@@ -54,9 +57,7 @@ export default function FeedbackView() {
   if (loading) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
-        <p className="text-sm text-slate-500">
-          Loading instructor feedback...
-        </p>
+        <LoadingState label="Loading instructor feedback..." />
       </div>
     );
   }
@@ -64,20 +65,13 @@ export default function FeedbackView() {
   if (error || !feedback) {
     return (
       <div className="space-y-6">
-        <div>
-          <p className="text-sm font-semibold text-[#006CB8]">
-            Training Feedback
-          </p>
-
-          <h1 className="mt-1 text-2xl font-bold text-slate-900">
-            Instructor Feedback
-          </h1>
-        </div>
+        <PageHeader
+          title={<> Instructor Feedback </>}
+          eyebrow={<> Training Feedback </>}
+        />
 
         <div className="rounded-2xl border border-amber-100 bg-amber-50 p-6">
-          <h2 className="font-bold text-slate-900">
-            Feedback Not Available
-          </h2>
+          <h2 className="font-bold text-slate-900">Feedback Not Available</h2>
 
           <p className="mt-2 text-sm leading-6 text-slate-600">
             {error ||
@@ -87,9 +81,7 @@ export default function FeedbackView() {
           <Link
             href={
               sessionId
-                ? `/performance?sessionId=${encodeURIComponent(
-                    sessionId
-                  )}`
+                ? `/performance?sessionId=${encodeURIComponent(sessionId)}`
                 : "/performance"
             }
             className="mt-5 inline-flex rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-[#006CB8] shadow-sm"
@@ -101,34 +93,29 @@ export default function FeedbackView() {
     );
   }
 
-  const evaluatedDate = new Date(
-    feedback.evaluatedAt
-  ).toLocaleString();
+  const evaluatedDate = new Date(feedback.evaluatedAt).toLocaleString();
 
-  const sortedRecommendations = [
-    ...feedback.safetyRecommendations,
-  ].sort((a, b) => a.priority - b.priority);
+  const sortedRecommendations = [...feedback.safetyRecommendations].sort(
+    (a, b) => a.priority - b.priority,
+  );
 
-  const sortedModules = [
-    ...feedback.recommendedModules,
-  ].sort((a, b) => a.order - b.order);
+  const sortedModules = [...feedback.recommendedModules].sort(
+    (a, b) => a.order - b.order,
+  );
 
   return (
     <div className="space-y-8">
-      <div>
-        <p className="text-sm font-semibold text-[#006CB8]">
-          Training Feedback
-        </p>
-
-        <h1 className="mt-1 text-2xl font-bold text-slate-900">
-          Instructor Feedback
-        </h1>
-
-        <p className="mt-2 text-sm text-slate-500">
-          Review your instructor&apos;s evaluation and
-          recommendations for your simulator training.
-        </p>
-      </div>
+      <PageHeader
+        title={<> Instructor Feedback </>}
+        description={
+          <>
+            {" "}
+            Review your instructor&apos;s evaluation and recommendations for
+            your simulator training.{" "}
+          </>
+        }
+        eyebrow={<> Training Feedback </>}
+      />
 
       <section className="rounded-2xl border border-blue-100 bg-blue-50 p-6">
         <p className="text-sm font-semibold text-[#006CB8]">
@@ -139,9 +126,7 @@ export default function FeedbackView() {
           Feedback from {feedback.instructorName}
         </h2>
 
-        <p className="mt-1 text-xs text-slate-500">
-          Evaluated {evaluatedDate}
-        </p>
+        <p className="mt-1 text-xs text-slate-500">Evaluated {evaluatedDate}</p>
 
         <p className="mt-5 leading-7 text-slate-700">
           {feedback.overallComments}
@@ -164,14 +149,13 @@ export default function FeedbackView() {
         />
       </div>
 
-      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <GlassCard as="section" className="p-6">
         <h2 className="text-lg font-bold text-slate-900">
           Safety Recommendations
         </h2>
 
         <p className="mt-1 text-sm text-slate-500">
-          Recommended actions to improve your driving
-          safety.
+          Recommended actions to improve your driving safety.
         </p>
 
         {sortedRecommendations.length === 0 ? (
@@ -180,34 +164,29 @@ export default function FeedbackView() {
           </p>
         ) : (
           <div className="mt-5 space-y-3">
-            {sortedRecommendations.map(
-              (recommendation, index) => (
-                <div
-                  key={`${recommendation.priority}-${index}`}
-                  className="flex gap-4 rounded-xl bg-slate-50 p-4"
-                >
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-100 text-sm font-bold text-[#006CB8]">
-                    {recommendation.priority}
-                  </div>
-
-                  <p className="text-sm leading-6 text-slate-700">
-                    {recommendation.description}
-                  </p>
+            {sortedRecommendations.map((recommendation, index) => (
+              <div
+                key={`${recommendation.priority}-${index}`}
+                className="flex gap-4 rounded-xl bg-slate-50 p-4"
+              >
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-100 text-sm font-bold text-[#006CB8]">
+                  {recommendation.priority}
                 </div>
-              )
-            )}
+
+                <p className="text-sm leading-6 text-slate-700">
+                  {recommendation.description}
+                </p>
+              </div>
+            ))}
           </div>
         )}
-      </section>
+      </GlassCard>
 
-      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-bold text-slate-900">
-          Violation Review
-        </h2>
+      <GlassCard as="section" className="p-6">
+        <h2 className="text-lg font-bold text-slate-900">Violation Review</h2>
 
         <p className="mt-1 text-sm text-slate-500">
-          Instructor explanations for events recorded
-          during your simulation.
+          Instructor explanations for events recorded during your simulation.
         </p>
 
         {feedback.violationExplanations.length === 0 ? (
@@ -216,44 +195,39 @@ export default function FeedbackView() {
           </p>
         ) : (
           <div className="mt-5 space-y-4">
-            {feedback.violationExplanations.map(
-              (violation) => (
-                <div
-                  key={violation.simulationEventId}
-                  className="rounded-xl border border-slate-100 bg-slate-50 p-4"
-                >
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-sm font-bold text-slate-900">
-                      {formatLabel(
-                        violation.eventType
-                      )}
+            {feedback.violationExplanations.map((violation) => (
+              <div
+                key={violation.simulationEventId}
+                className="rounded-xl border border-slate-100 bg-slate-50 p-4"
+              >
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-sm font-bold text-slate-900">
+                    {formatLabel(violation.eventType)}
+                  </span>
+
+                  {violation.severity && (
+                    <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-700">
+                      {violation.severity}
                     </span>
-
-                    {violation.severity && (
-                      <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-700">
-                        {violation.severity}
-                      </span>
-                    )}
-                  </div>
-
-                  <p className="mt-3 text-sm leading-6 text-slate-600">
-                    {violation.explanation}
-                  </p>
+                  )}
                 </div>
-              )
-            )}
+
+                <p className="mt-3 text-sm leading-6 text-slate-600">
+                  {violation.explanation}
+                </p>
+              </div>
+            ))}
           </div>
         )}
-      </section>
+      </GlassCard>
 
-      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <GlassCard as="section" className="p-6">
         <h2 className="text-lg font-bold text-slate-900">
           Recommended Learning
         </h2>
 
         <p className="mt-1 text-sm text-slate-500">
-          Learning modules recommended by your
-          instructor.
+          Learning modules recommended by your instructor.
         </p>
 
         {sortedModules.length === 0 ? (
@@ -270,9 +244,7 @@ export default function FeedbackView() {
               >
                 {module.recommendationType && (
                   <p className="text-xs font-semibold uppercase tracking-wide text-[#006CB8]">
-                    {formatLabel(
-                      module.recommendationType
-                    )}
+                    {formatLabel(module.recommendationType)}
                   </p>
                 )}
 
@@ -287,12 +259,12 @@ export default function FeedbackView() {
             ))}
           </div>
         )}
-      </section>
+      </GlassCard>
 
       <div className="flex justify-end">
         <Link
           href={`/performance?sessionId=${encodeURIComponent(
-            feedback.simulationSessionId
+            feedback.simulationSessionId,
           )}`}
           className="rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
         >
@@ -315,19 +287,13 @@ function FeedbackList({
   emptyText: string;
 }) {
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-      <h2 className="text-lg font-bold text-slate-900">
-        {title}
-      </h2>
+    <GlassCard as="section" className="p-6">
+      <h2 className="text-lg font-bold text-slate-900">{title}</h2>
 
-      <p className="mt-1 text-sm text-slate-500">
-        {description}
-      </p>
+      <p className="mt-1 text-sm text-slate-500">{description}</p>
 
       {items.length === 0 ? (
-        <p className="mt-5 text-sm text-slate-500">
-          {emptyText}
-        </p>
+        <p className="mt-5 text-sm text-slate-500">{emptyText}</p>
       ) : (
         <div className="mt-5 space-y-3">
           {items.map((item, index) => (
@@ -335,18 +301,14 @@ function FeedbackList({
               key={`${item}-${index}`}
               className="flex gap-3 rounded-xl bg-slate-50 p-4"
             >
-              <span className="font-bold text-[#006CB8]">
-                ✓
-              </span>
+              <span className="font-bold text-[#006CB8]">✓</span>
 
-              <p className="text-sm leading-6 text-slate-700">
-                {item}
-              </p>
+              <p className="text-sm leading-6 text-slate-700">{item}</p>
             </div>
           ))}
         </div>
       )}
-    </section>
+    </GlassCard>
   );
 }
 
@@ -354,7 +316,5 @@ function formatLabel(value: string) {
   return value
     .replaceAll("_", " ")
     .toLowerCase()
-    .replace(/\b\w/g, (letter) =>
-      letter.toUpperCase()
-    );
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }

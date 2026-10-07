@@ -1,4 +1,11 @@
 "use client";
+import Button from "@/components/ui/Button";
+
+import Alert from "@/components/shared/Alert";
+
+import LoadingState from "@/components/shared/LoadingState";
+
+import GlassCard from "@/components/shared/GlassCard";
 
 import { FormEvent, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
@@ -21,8 +28,9 @@ export default function InstructorFeedbackView() {
   const searchParams = useSearchParams();
   const sessionId = searchParams.get("sessionId");
 
-  const [performance, setPerformance] =
-    useState<PerformanceEvaluation | null>(null);
+  const [performance, setPerformance] = useState<PerformanceEvaluation | null>(
+    null,
+  );
 
   const [existingFeedback, setExistingFeedback] =
     useState<InstructorFeedback | null>(null);
@@ -31,12 +39,13 @@ export default function InstructorFeedbackView() {
   const [strengths, setStrengths] = useState("");
   const [improvementAreas, setImprovementAreas] = useState("");
 
-  const [recommendations, setRecommendations] = useState<
-    RecommendationInput[]
-  >([{ description: "", priority: 1 }]);
+  const [recommendations, setRecommendations] = useState<RecommendationInput[]>(
+    [{ description: "", priority: 1 }],
+  );
 
-  const [violationExplanations, setViolationExplanations] =
-    useState<Record<string, string>>({});
+  const [violationExplanations, setViolationExplanations] = useState<
+    Record<string, string>
+  >({});
 
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -46,7 +55,7 @@ export default function InstructorFeedbackView() {
   useEffect(() => {
     if (!sessionId) {
       setError(
-        "Select a training session from the Instructor Dashboard first."
+        "Select a training session from the Instructor Dashboard first.",
       );
       setLoading(false);
       return;
@@ -57,14 +66,12 @@ export default function InstructorFeedbackView() {
         setLoading(true);
         setError("");
 
-        const performanceData =
-          await getPerformanceEvaluation(sessionId!);
+        const performanceData = await getPerformanceEvaluation(sessionId!);
 
         setPerformance(performanceData);
 
         try {
-          const feedbackData =
-            await getInstructorFeedback(sessionId!);
+          const feedbackData = await getInstructorFeedback(sessionId!);
 
           setExistingFeedback(feedbackData);
         } catch {
@@ -74,7 +81,7 @@ export default function InstructorFeedbackView() {
         setError(
           err instanceof Error
             ? err.message
-            : "Failed to load training session."
+            : "Failed to load training session.",
         );
       } finally {
         setLoading(false);
@@ -94,16 +101,11 @@ export default function InstructorFeedbackView() {
     ]);
   }
 
-  function updateRecommendation(
-    index: number,
-    description: string
-  ) {
+  function updateRecommendation(index: number, description: string) {
     setRecommendations((current) =>
       current.map((item, currentIndex) =>
-        currentIndex === index
-          ? { ...item, description }
-          : item
-      )
+        currentIndex === index ? { ...item, description } : item,
+      ),
     );
   }
 
@@ -114,7 +116,7 @@ export default function InstructorFeedbackView() {
         .map((item, currentIndex) => ({
           ...item,
           priority: currentIndex + 1,
-        }))
+        })),
     );
   }
 
@@ -151,14 +153,10 @@ export default function InstructorFeedbackView() {
           })),
 
         violationExplanations: performance.events
-          .filter(
-            (item) =>
-              violationExplanations[item.eventId]?.trim()
-          )
+          .filter((item) => violationExplanations[item.eventId]?.trim())
           .map((item) => ({
             simulationEventId: item.eventId,
-            explanation:
-              violationExplanations[item.eventId].trim(),
+            explanation: violationExplanations[item.eventId].trim(),
           })),
 
         recommendedModules: [],
@@ -170,7 +168,7 @@ export default function InstructorFeedbackView() {
       setError(
         err instanceof Error
           ? err.message
-          : "Failed to submit instructor feedback."
+          : "Failed to submit instructor feedback.",
       );
     } finally {
       setSubmitting(false);
@@ -178,19 +176,11 @@ export default function InstructorFeedbackView() {
   }
 
   if (loading) {
-    return (
-      <div className="py-16 text-center text-sm text-slate-500">
-        Loading training session...
-      </div>
-    );
+    return <LoadingState label="Loading training session..." />;
   }
 
   if (error && !performance) {
-    return (
-      <div className="rounded-2xl border border-red-100 bg-red-50 p-6 text-red-700">
-        {error}
-      </div>
-    );
+    return <Alert>{error}</Alert>;
   }
 
   if (!performance) {
@@ -209,12 +199,12 @@ export default function InstructorFeedbackView() {
         </h1>
 
         <p className="mt-2 text-sm text-slate-500">
-          Review participant performance and provide structured
-          training feedback.
+          Review participant performance and provide structured training
+          feedback.
         </p>
       </header>
 
-      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <GlassCard as="section" className="p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h2 className="text-lg font-bold text-slate-900">
@@ -239,18 +229,9 @@ export default function InstructorFeedbackView() {
 
         <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <Score label="Theory" value={performance.theoryScore} />
-          <Score
-            label="Simulator"
-            value={performance.simulatorScore}
-          />
-          <Score
-            label="Overall"
-            value={performance.overallScore}
-          />
-          <Score
-            label="Violations"
-            value={performance.totalViolations}
-          />
+          <Score label="Simulator" value={performance.simulatorScore} />
+          <Score label="Overall" value={performance.overallScore} />
+          <Score label="Violations" value={performance.totalViolations} />
         </div>
 
         <div className="mt-5 grid gap-3 sm:grid-cols-3">
@@ -269,7 +250,7 @@ export default function InstructorFeedbackView() {
             value={performance.breakdown.emergencyResponseScore}
           />
         </div>
-      </section>
+      </GlassCard>
 
       {existingFeedback ? (
         <section className="rounded-2xl border border-emerald-200 bg-emerald-50 p-6">
@@ -290,25 +271,20 @@ export default function InstructorFeedbackView() {
           </p>
         </section>
       ) : (
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-6"
-        >
-          <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <GlassCard as="section" className="p-6">
             <h2 className="text-lg font-bold text-slate-900">
               Overall Evaluation
             </h2>
 
             <textarea
               value={overallComments}
-              onChange={(event) =>
-                setOverallComments(event.target.value)
-              }
+              onChange={(event) => setOverallComments(event.target.value)}
               rows={5}
               placeholder="Write an overall evaluation of the participant's simulator performance..."
               className="mt-4 w-full rounded-xl border border-slate-200 p-4 text-sm outline-none focus:border-[#006CB8]"
             />
-          </section>
+          </GlassCard>
 
           <div className="grid gap-6 lg:grid-cols-2">
             <TextListInput
@@ -332,14 +308,13 @@ export default function InstructorFeedbackView() {
             />
           </div>
 
-          <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <GlassCard as="section" className="p-6">
             <h2 className="text-lg font-bold text-slate-900">
               Violation Review
             </h2>
 
             <p className="mt-1 text-sm text-slate-500">
-              Explain simulator violations where additional
-              coaching is needed.
+              Explain simulator violations where additional coaching is needed.
             </p>
 
             <div className="mt-5 space-y-4">
@@ -372,17 +347,12 @@ export default function InstructorFeedbackView() {
                     )}
 
                     <textarea
-                      value={
-                        violationExplanations[item.eventId] ?? ""
-                      }
+                      value={violationExplanations[item.eventId] ?? ""}
                       onChange={(event) =>
-                        setViolationExplanations(
-                          (current) => ({
-                            ...current,
-                            [item.eventId]:
-                              event.target.value,
-                          })
-                        )
+                        setViolationExplanations((current) => ({
+                          ...current,
+                          [item.eventId]: event.target.value,
+                        }))
                       }
                       rows={3}
                       placeholder="Instructor explanation or coaching note..."
@@ -392,9 +362,9 @@ export default function InstructorFeedbackView() {
                 ))
               )}
             </div>
-          </section>
+          </GlassCard>
 
-          <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <GlassCard as="section" className="p-6">
             <div className="flex items-center justify-between gap-4">
               <div>
                 <h2 className="text-lg font-bold text-slate-900">
@@ -417,10 +387,7 @@ export default function InstructorFeedbackView() {
 
             <div className="mt-5 space-y-3">
               {recommendations.map((item, index) => (
-                <div
-                  key={index}
-                  className="flex gap-3"
-                >
+                <div key={index} className="flex gap-3">
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-sm font-bold text-[#006CB8]">
                     {index + 1}
                   </div>
@@ -428,10 +395,7 @@ export default function InstructorFeedbackView() {
                   <input
                     value={item.description}
                     onChange={(event) =>
-                      updateRecommendation(
-                        index,
-                        event.target.value
-                      )
+                      updateRecommendation(index, event.target.value)
                     }
                     placeholder="Safety recommendation..."
                     className="min-w-0 flex-1 rounded-xl border border-slate-200 px-4 text-sm outline-none focus:border-[#006CB8]"
@@ -440,9 +404,7 @@ export default function InstructorFeedbackView() {
                   {recommendations.length > 1 && (
                     <button
                       type="button"
-                      onClick={() =>
-                        removeRecommendation(index)
-                      }
+                      onClick={() => removeRecommendation(index)}
                       className="px-2 text-sm font-semibold text-red-500"
                     >
                       Remove
@@ -451,13 +413,9 @@ export default function InstructorFeedbackView() {
                 </div>
               ))}
             </div>
-          </section>
+          </GlassCard>
 
-          {error && (
-            <div className="rounded-xl bg-red-50 p-4 text-sm text-red-700">
-              {error}
-            </div>
-          )}
+          {error && <Alert>{error}</Alert>}
 
           {success && (
             <div className="rounded-xl bg-emerald-50 p-4 text-sm text-emerald-700">
@@ -466,15 +424,14 @@ export default function InstructorFeedbackView() {
           )}
 
           <div className="flex justify-end">
-            <button
+            <Button
+              fullWidth={false}
               type="submit"
               disabled={submitting}
               className="rounded-xl bg-[#006CB8] px-6 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {submitting
-                ? "Submitting..."
-                : "Submit Feedback"}
-            </button>
+              {submitting ? "Submitting..." : "Submit Feedback"}
+            </Button>
           </div>
         </form>
       )}
@@ -496,14 +453,10 @@ function TextListInput({
   placeholder: string;
 }) {
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-      <h2 className="text-lg font-bold text-slate-900">
-        {title}
-      </h2>
+    <GlassCard as="section" className="p-6">
+      <h2 className="text-lg font-bold text-slate-900">{title}</h2>
 
-      <p className="mt-1 text-sm text-slate-500">
-        {description}
-      </p>
+      <p className="mt-1 text-sm text-slate-500">{description}</p>
 
       <textarea
         value={value}
@@ -512,22 +465,14 @@ function TextListInput({
         placeholder={placeholder}
         className="mt-4 w-full rounded-xl border border-slate-200 p-4 text-sm outline-none focus:border-[#006CB8]"
       />
-    </section>
+    </GlassCard>
   );
 }
 
-function Score({
-  label,
-  value,
-}: {
-  label: string;
-  value: number;
-}) {
+function Score({ label, value }: { label: string; value: number }) {
   return (
     <div className="rounded-xl bg-slate-50 p-4">
-      <p className="text-xs font-semibold uppercase text-slate-400">
-        {label}
-      </p>
+      <p className="text-xs font-semibold uppercase text-slate-400">{label}</p>
 
       <p className="mt-1 text-2xl font-bold text-slate-900">
         {formatScore(value)}
@@ -536,18 +481,10 @@ function Score({
   );
 }
 
-function SmallScore({
-  label,
-  value,
-}: {
-  label: string;
-  value: number | null;
-}) {
+function SmallScore({ label, value }: { label: string; value: number | null }) {
   return (
     <div className="rounded-xl border border-slate-100 p-4">
-      <p className="text-xs font-semibold text-slate-500">
-        {label}
-      </p>
+      <p className="text-xs font-semibold text-slate-500">{label}</p>
 
       <p className="mt-1 text-lg font-bold text-slate-900">
         {value == null ? "—" : formatScore(value)}

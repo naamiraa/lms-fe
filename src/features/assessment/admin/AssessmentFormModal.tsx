@@ -1,4 +1,9 @@
 "use client";
+import ModalFrame from "@/components/shared/ModalFrame";
+
+import Button from "@/components/ui/Button";
+
+import Alert from "@/components/shared/Alert";
 
 import { FormEvent, useEffect, useState } from "react";
 import type { Assessment } from "@/types/admin-assessment";
@@ -75,7 +80,7 @@ export default function AssessmentFormModal({
       });
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Failed to save assessment."
+        err instanceof Error ? err.message : "Failed to save assessment.",
       );
     } finally {
       setSaving(false);
@@ -88,7 +93,7 @@ export default function AssessmentFormModal({
   const labelClass = "mb-1.5 block text-sm font-medium text-slate-700";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4">
+    <ModalFrame title={"Manage Assessment"} onClose={onClose} busy={saving}>
       <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white shadow-xl">
         <div className="flex items-center justify-between border-b border-slate-100 px-6 py-5">
           <div>
@@ -110,11 +115,7 @@ export default function AssessmentFormModal({
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5 p-6">
-          {error && (
-            <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-              {error}
-            </div>
-          )}
+          {error && <Alert>{error}</Alert>}
 
           <div>
             <label className={labelClass}>Learning Module</label>
@@ -220,20 +221,21 @@ export default function AssessmentFormModal({
               Cancel
             </button>
 
-            <button
+            <Button
+              fullWidth={false}
               type="submit"
               disabled={saving}
-              className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+              className="rounded-xl bg-[#006CB8] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#005a9c] disabled:opacity-50"
             >
               {saving
                 ? "Saving..."
                 : isEdit
                   ? "Save Changes"
                   : "Create Assessment"}
-            </button>
+            </Button>
           </div>
         </form>
       </div>
-    </div>
+    </ModalFrame>
   );
 }

@@ -1,4 +1,11 @@
 "use client";
+import LoadingState from "@/components/shared/LoadingState";
+
+import GlassCard from "@/components/shared/GlassCard";
+
+import PageHeader from "@/components/shared/PageHeader";
+
+import StatCard from "@/components/shared/MetricCard";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -10,8 +17,7 @@ import type {
 } from "@/types/instructor-dashboard";
 
 export default function InstructorDashboardView() {
-  const [dashboard, setDashboard] =
-    useState<InstructorDashboard | null>(null);
+  const [dashboard, setDashboard] = useState<InstructorDashboard | null>(null);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -30,7 +36,7 @@ export default function InstructorDashboardView() {
         setError(
           err instanceof Error
             ? err.message
-            : "Failed to load instructor dashboard."
+            : "Failed to load instructor dashboard.",
         );
       } finally {
         setLoading(false);
@@ -43,9 +49,7 @@ export default function InstructorDashboardView() {
   if (loading) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
-        <p className="text-sm text-slate-500">
-          Loading instructor dashboard...
-        </p>
+        <LoadingState label="Loading instructor dashboard..." />
       </div>
     );
   }
@@ -53,9 +57,7 @@ export default function InstructorDashboardView() {
   if (error || !dashboard) {
     return (
       <div className="rounded-2xl border border-red-100 bg-red-50 p-6">
-        <h2 className="font-bold text-red-700">
-          Unable to load dashboard
-        </h2>
+        <h2 className="font-bold text-red-700">Unable to load dashboard</h2>
 
         <p className="mt-2 text-sm text-red-600">
           {error || "Dashboard data is unavailable."}
@@ -66,20 +68,18 @@ export default function InstructorDashboardView() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <p className="text-sm font-semibold text-[#006CB8]">
-          Instructor Overview
-        </p>
-
-        <h1 className="mt-1 text-2xl font-bold text-slate-900">
-          Instructor Dashboard
-        </h1>
-
-        <p className="mt-2 text-sm text-slate-500">
-          Monitor completed simulator training and participant
-          evaluation progress.
-        </p>
-      </div>
+      <PageHeader
+        tone="brand"
+        title={<> Instructor Dashboard </>}
+        description={
+          <>
+            {" "}
+            Monitor completed simulator training and participant evaluation
+            progress.{" "}
+          </>
+        }
+        eyebrow={<> Instructor Overview </>}
+      />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
@@ -87,10 +87,7 @@ export default function InstructorDashboardView() {
           value={dashboard.completedSimulations}
         />
 
-        <StatCard
-          label="Pending Feedback"
-          value={dashboard.pendingFeedback}
-        />
+        <StatCard label="Pending Feedback" value={dashboard.pendingFeedback} />
 
         <StatCard
           label="Evaluated Sessions"
@@ -99,21 +96,19 @@ export default function InstructorDashboardView() {
 
         <StatCard
           label="Avg. Simulator Score"
-          value={formatScore(
-            dashboard.averageSimulatorScore
-          )}
+          value={formatScore(dashboard.averageSimulatorScore)}
         />
       </div>
 
-      <section className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <GlassCard as="section" className="">
         <div className="border-b border-slate-100 p-6">
           <h2 className="text-lg font-bold text-slate-900">
             Recent Training Sessions
           </h2>
 
           <p className="mt-1 text-sm text-slate-500">
-            Review recently completed simulator sessions and
-            provide participant feedback.
+            Review recently completed simulator sessions and provide participant
+            feedback.
           </p>
         </div>
 
@@ -137,38 +132,13 @@ export default function InstructorDashboardView() {
             ))}
           </div>
         )}
-      </section>
+      </GlassCard>
     </div>
   );
 }
 
-function StatCard({
-  label,
-  value,
-}: {
-  label: string;
-  value: string | number;
-}) {
-  return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-      <p className="text-sm font-medium text-slate-500">
-        {label}
-      </p>
-
-      <p className="mt-2 text-3xl font-bold text-slate-900">
-        {value}
-      </p>
-    </div>
-  );
-}
-
-function RecentSession({
-  session,
-}: {
-  session: InstructorRecentSession;
-}) {
-  const passed =
-    session.result.toUpperCase() === "PASS";
+function RecentSession({ session }: { session: InstructorRecentSession }) {
+  const passed = session.result.toUpperCase() === "PASS";
 
   return (
     <div className="flex flex-col gap-5 p-6 lg:flex-row lg:items-center lg:justify-between">
@@ -201,15 +171,9 @@ function RecentSession({
       </div>
 
       <div className="flex flex-wrap items-center gap-6">
-        <Score
-          label="Simulator"
-          value={session.simulatorScore}
-        />
+        <Score label="Simulator" value={session.simulatorScore} />
 
-        <Score
-          label="Overall"
-          value={session.overallScore}
-        />
+        <Score label="Overall" value={session.overallScore} />
 
         <div>
           <p className="text-xs font-semibold uppercase text-slate-400">
@@ -223,16 +187,14 @@ function RecentSession({
                 : "text-amber-600"
             }`}
           >
-            {session.hasInstructorFeedback
-              ? "Evaluated"
-              : "Pending"}
+            {session.hasInstructorFeedback ? "Evaluated" : "Pending"}
           </p>
         </div>
 
         {session.hasInstructorFeedback ? (
           <Link
             href={`/instructor/feedback?sessionId=${encodeURIComponent(
-              session.simulationSessionId
+              session.simulationSessionId,
             )}`}
             className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
           >
@@ -241,7 +203,7 @@ function RecentSession({
         ) : (
           <Link
             href={`/instructor/feedback?sessionId=${encodeURIComponent(
-              session.simulationSessionId
+              session.simulationSessionId,
             )}`}
             className="rounded-xl bg-[#006CB8] px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90"
           >
@@ -253,22 +215,12 @@ function RecentSession({
   );
 }
 
-function Score({
-  label,
-  value,
-}: {
-  label: string;
-  value: number;
-}) {
+function Score({ label, value }: { label: string; value: number }) {
   return (
     <div>
-      <p className="text-xs font-semibold uppercase text-slate-400">
-        {label}
-      </p>
+      <p className="text-xs font-semibold uppercase text-slate-400">{label}</p>
 
-      <p className="mt-1 font-bold text-slate-900">
-        {formatScore(value)}
-      </p>
+      <p className="mt-1 font-bold text-slate-900">{formatScore(value)}</p>
     </div>
   );
 }

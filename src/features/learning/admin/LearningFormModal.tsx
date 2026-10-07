@@ -1,4 +1,9 @@
 "use client";
+import ModalFrame from "@/components/shared/ModalFrame";
+
+import Button from "@/components/ui/Button";
+
+import Alert from "@/components/shared/Alert";
 
 import { useEffect, useState } from "react";
 import type {
@@ -7,10 +12,7 @@ import type {
   LearningContent,
 } from "@/types/admin-learning";
 
-export type LearningModalMode =
-  | "DOMAIN"
-  | "MODULE"
-  | "CONTENT";
+export type LearningModalMode = "DOMAIN" | "MODULE" | "CONTENT";
 
 interface Props {
   open: boolean;
@@ -112,11 +114,7 @@ export default function LearningFormModal({
         });
       }
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Failed to save data."
-      );
+      setError(err instanceof Error ? err.message : "Failed to save data.");
     } finally {
       setSaving(false);
     }
@@ -130,11 +128,11 @@ export default function LearningFormModal({
         : `${editing ? "Edit" : "Add"} Learning Content`;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+    <ModalFrame title={titleText} onClose={onClose} busy={saving}>
       <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white shadow-xl">
         <div className="flex items-center justify-between border-b border-slate-200 p-5">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-blue-600">
+            <p className="text-xs font-semibold uppercase tracking-wider text-[#006CB8]">
               Learning Management
             </p>
 
@@ -153,11 +151,7 @@ export default function LearningFormModal({
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4 p-5">
-          {error && (
-            <div className="rounded-xl bg-red-50 p-3 text-sm text-red-700">
-              {error}
-            </div>
-          )}
+          {error && <Alert>{error}</Alert>}
 
           {mode !== "CONTENT" && (
             <Field label={mode === "DOMAIN" ? "Domain Name" : "Module Name"}>
@@ -241,9 +235,7 @@ export default function LearningFormModal({
                 min={1}
                 type="number"
                 value={estimatedMinutes}
-                onChange={(e) =>
-                  setEstimatedMinutes(Number(e.target.value))
-                }
+                onChange={(e) => setEstimatedMinutes(Number(e.target.value))}
                 className={inputClass}
               />
             </Field>
@@ -259,21 +251,18 @@ export default function LearningFormModal({
               Cancel
             </button>
 
-            <button
+            <Button
+              fullWidth={false}
               type="submit"
               disabled={saving}
-              className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+              className="rounded-xl bg-[#006CB8] px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
             >
-              {saving
-                ? "Saving..."
-                : editing
-                  ? "Save Changes"
-                  : "Create"}
-            </button>
+              {saving ? "Saving..." : editing ? "Save Changes" : "Create"}
+            </Button>
           </div>
         </form>
       </div>
-    </div>
+    </ModalFrame>
   );
 }
 

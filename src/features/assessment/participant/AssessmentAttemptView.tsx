@@ -1,4 +1,13 @@
 "use client";
+import Button from "@/components/ui/Button";
+
+import Alert from "@/components/shared/Alert";
+
+import LoadingState from "@/components/shared/LoadingState";
+
+import GlassCard from "@/components/shared/GlassCard";
+
+import PageHeader from "@/components/shared/PageHeader";
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -18,79 +27,61 @@ export default function AssessmentAttemptView({
 }: AssessmentAttemptViewProps) {
   const router = useRouter();
 
-  const [attempt, setAttempt] =
-    useState<AssessmentAttempt | null>(null);
+  const [attempt, setAttempt] = useState<AssessmentAttempt | null>(null);
 
-  const [currentQuestionIndex, setCurrentQuestionIndex] =
-    useState(0);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
 
-  const [answers, setAnswers] =
-    useState<Record<string, string>>({});
+  const [answers, setAnswers] = useState<Record<string, string>>({});
 
-  const [savingQuestionId, setSavingQuestionId] =
-    useState<string | null>(null);
+  const [savingQuestionId, setSavingQuestionId] = useState<string | null>(null);
 
-  const [isSubmitting, setIsSubmitting] =
-    useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [error, setError] = useState("");
 
-
   useEffect(() => {
     async function loadAttempt() {
-        try {
+      try {
         setError("");
 
-        const data =
-            await getAssessmentAttempt(attemptId);
+        const data = await getAssessmentAttempt(attemptId);
 
         setAttempt(data);
 
         const savedAnswers: Record<string, string> = {};
 
         data.questions.forEach((question) => {
-            if (question.selectedOptionId) {
-            savedAnswers[question.id] =
-                question.selectedOptionId;
-            }
+          if (question.selectedOptionId) {
+            savedAnswers[question.id] = question.selectedOptionId;
+          }
         });
 
         setAnswers(savedAnswers);
-        } catch (err) {
+      } catch (err) {
         console.error(err);
 
         setError(
-            err instanceof Error
-            ? err.message
-            : "Failed to load assessment."
+          err instanceof Error ? err.message : "Failed to load assessment.",
         );
-        }
+      }
     }
 
     loadAttempt();
-    }, [attemptId]);
-
+  }, [attemptId]);
 
   const sortedQuestions = useMemo(() => {
     if (!attempt) {
       return [];
     }
 
-    return [...attempt.questions].sort(
-      (a, b) => a.order - b.order
-    );
+    return [...attempt.questions].sort((a, b) => a.order - b.order);
   }, [attempt]);
 
-  const currentQuestion =
-    sortedQuestions[currentQuestionIndex];
+  const currentQuestion = sortedQuestions[currentQuestionIndex];
 
-  const answeredCount =
-    Object.keys(answers).length;
+  const answeredCount = Object.keys(answers).length;
 
-  async function handleSelectAnswer(
-    questionId: string,
-    optionId: string
-  ) {
+  async function handleSelectAnswer(questionId: string, optionId: string) {
     const previousAnswer = answers[questionId];
 
     setAnswers((current) => ({
@@ -102,11 +93,7 @@ export default function AssessmentAttemptView({
       setSavingQuestionId(questionId);
       setError("");
 
-      await saveAssessmentAnswer(
-        attemptId,
-        questionId,
-        optionId
-      );
+      await saveAssessmentAnswer(attemptId, questionId, optionId);
     } catch (err) {
       console.error(err);
 
@@ -122,11 +109,7 @@ export default function AssessmentAttemptView({
         return updated;
       });
 
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Failed to save answer."
-      );
+      setError(err instanceof Error ? err.message : "Failed to save answer.");
     } finally {
       setSavingQuestionId(null);
     }
@@ -138,9 +121,7 @@ export default function AssessmentAttemptView({
     }
 
     if (answeredCount < sortedQuestions.length) {
-      setError(
-        "Please answer all questions before submitting the assessment."
-      );
+      setError("Please answer all questions before submitting the assessment.");
       return;
     }
 
@@ -149,24 +130,18 @@ export default function AssessmentAttemptView({
       setError("");
 
       await submitAssessment(attemptId);
-      router.push(
-        `/assessment/attempts/${attemptId}/completed`
-        );
+      router.push(`/assessment/attempts/${attemptId}/completed`);
 
-    //   sessionStorage.removeItem(
-    //     `assessment_attempt_${attemptId}`
-    //   );
+      //   sessionStorage.removeItem(
+      //     `assessment_attempt_${attemptId}`
+      //   );
 
-      router.replace(
-        `/assessment/attempts/${attemptId}/completed`
-      );
+      router.replace(`/assessment/attempts/${attemptId}/completed`);
     } catch (err) {
       console.error(err);
 
       setError(
-        err instanceof Error
-          ? err.message
-          : "Failed to submit assessment."
+        err instanceof Error ? err.message : "Failed to submit assessment.",
       );
     } finally {
       setIsSubmitting(false);
@@ -176,62 +151,47 @@ export default function AssessmentAttemptView({
   if (!attempt && !error) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
-        <p className="text-sm text-slate-500">
-          Loading assessment...
-        </p>
+        <LoadingState label="Loading assessment..." />
       </div>
     );
   }
 
   if (!attempt) {
-    return (
-      <div className="rounded-2xl border border-red-100 bg-red-50 p-6">
-        <p className="font-semibold text-red-700">
-          {error}
-        </p>
-      </div>
-    );
+    return <Alert>{error}</Alert>;
   }
 
   if (!currentQuestion) {
     return (
-      <div className="rounded-2xl border border-slate-200 bg-white p-6">
+      <GlassCard className="p-6">
         <p className="font-semibold text-slate-900">
           No assessment questions available.
         </p>
-      </div>
+      </GlassCard>
     );
   }
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <p className="text-sm font-semibold text-[#006CB8]">
-            Theory Assessment
-          </p>
-
-          <h1 className="mt-1 text-2xl font-bold text-slate-900">
-            {attempt.assessmentTitle}
-          </h1>
-
-          <p className="mt-2 text-sm text-slate-500">
-            Attempt {attempt.attemptNumber} of{" "}
-            {attempt.maxAttempts}
-          </p>
-        </div>
-
-        <AssessmentTimer
-          expiresAt={attempt.expiresAt}
+        <PageHeader
+          title={<> {attempt.assessmentTitle} </>}
+          description={
+            <>
+              {" "}
+              Attempt {attempt.attemptNumber} of {attempt.maxAttempts}{" "}
+            </>
+          }
+          eyebrow={<> Theory Assessment </>}
         />
+
+        <AssessmentTimer expiresAt={attempt.expiresAt} />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1fr_260px]">
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <GlassCard className="p-6">
           <div className="flex items-center justify-between gap-4">
             <p className="text-sm font-semibold text-[#006CB8]">
-              Question {currentQuestionIndex + 1} of{" "}
-              {sortedQuestions.length}
+              Question {currentQuestionIndex + 1} of {sortedQuestions.length}
             </p>
 
             <p className="text-xs text-slate-400">
@@ -261,24 +221,16 @@ export default function AssessmentAttemptView({
             {[...currentQuestion.options]
               .sort((a, b) => a.order - b.order)
               .map((option, index) => {
-                const selected =
-                  answers[currentQuestion.id] ===
-                  option.id;
+                const selected = answers[currentQuestion.id] === option.id;
 
                 return (
                   <button
                     key={option.id}
                     type="button"
                     onClick={() =>
-                      handleSelectAnswer(
-                        currentQuestion.id,
-                        option.id
-                      )
+                      handleSelectAnswer(currentQuestion.id, option.id)
                     }
-                    disabled={
-                      savingQuestionId ===
-                      currentQuestion.id
-                    }
+                    disabled={savingQuestionId === currentQuestion.id}
                     className={`flex w-full items-center gap-4 rounded-xl border p-4 text-left transition ${
                       selected
                         ? "border-[#006CB8] bg-blue-50"
@@ -292,9 +244,7 @@ export default function AssessmentAttemptView({
                           : "bg-slate-100 text-slate-600"
                       }`}
                     >
-                      {String.fromCharCode(
-                        65 + index
-                      )}
+                      {String.fromCharCode(65 + index)}
                     </span>
 
                     <span className="text-sm font-medium text-slate-700">
@@ -308,92 +258,71 @@ export default function AssessmentAttemptView({
           <div className="mt-8 flex items-center justify-between">
             <button
               type="button"
-              disabled={
-                currentQuestionIndex === 0
-              }
-              onClick={() =>
-                setCurrentQuestionIndex(
-                  (current) => current - 1
-                )
-              }
+              disabled={currentQuestionIndex === 0}
+              onClick={() => setCurrentQuestionIndex((current) => current - 1)}
               className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
             >
               ← Previous
             </button>
 
-            {currentQuestionIndex <
-            sortedQuestions.length - 1 ? (
-              <button
+            {currentQuestionIndex < sortedQuestions.length - 1 ? (
+              <Button
+                fullWidth={false}
                 type="button"
                 onClick={() =>
-                  setCurrentQuestionIndex(
-                    (current) => current + 1
-                  )
+                  setCurrentQuestionIndex((current) => current + 1)
                 }
                 className="rounded-xl bg-[#006CB8] px-5 py-2.5 text-sm font-semibold text-white"
               >
                 Next →
-              </button>
+              </Button>
             ) : (
-              <button
+              <Button
+                fullWidth={false}
                 type="button"
                 onClick={handleSubmit}
                 disabled={isSubmitting}
                 className="rounded-xl bg-[#006CB8] px-5 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {isSubmitting
-                  ? "Submitting..."
-                  : "Submit Assessment"}
-              </button>
+                {isSubmitting ? "Submitting..." : "Submit Assessment"}
+              </Button>
             )}
           </div>
-        </div>
+        </GlassCard>
 
         <div className="space-y-4">
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <h2 className="font-bold text-slate-900">
-              Questions
-            </h2>
+          <GlassCard className="p-5">
+            <h2 className="font-bold text-slate-900">Questions</h2>
 
             <p className="mt-1 text-sm text-slate-500">
-              {answeredCount} of{" "}
-              {sortedQuestions.length} answered
+              {answeredCount} of {sortedQuestions.length} answered
             </p>
 
             <div className="mt-4 grid grid-cols-5 gap-2">
-              {sortedQuestions.map(
-                (question, index) => {
-                  const answered =
-                    Boolean(answers[question.id]);
+              {sortedQuestions.map((question, index) => {
+                const answered = Boolean(answers[question.id]);
 
-                  const active =
-                    index ===
-                    currentQuestionIndex;
+                const active = index === currentQuestionIndex;
 
-                  return (
-                    <button
-                      key={question.id}
-                      type="button"
-                      onClick={() =>
-                        setCurrentQuestionIndex(
-                          index
-                        )
-                      }
-                      className={`flex h-10 items-center justify-center rounded-lg text-sm font-bold transition ${
-                        active
-                          ? "bg-[#006CB8] text-white"
-                          : answered
-                            ? "bg-emerald-50 text-emerald-700"
-                            : "bg-slate-100 text-slate-600"
-                      }`}
-                    >
-                      {index + 1}
-                    </button>
-                  );
-                }
-              )}
+                return (
+                  <button
+                    key={question.id}
+                    type="button"
+                    onClick={() => setCurrentQuestionIndex(index)}
+                    className={`flex h-10 items-center justify-center rounded-lg text-sm font-bold transition ${
+                      active
+                        ? "bg-[#006CB8] text-white"
+                        : answered
+                          ? "bg-emerald-50 text-emerald-700"
+                          : "bg-slate-100 text-slate-600"
+                    }`}
+                  >
+                    {index + 1}
+                  </button>
+                );
+              })}
             </div>
-          </div>
+          </GlassCard>
 
           <div className="rounded-2xl border border-blue-100 bg-blue-50 p-5">
             <p className="text-sm font-semibold text-[#006CB8]">
@@ -401,73 +330,45 @@ export default function AssessmentAttemptView({
             </p>
 
             <p className="mt-1 text-xs leading-5 text-slate-600">
-              Your answer is saved automatically
-              every time you select an option.
+              Your answer is saved automatically every time you select an
+              option.
             </p>
           </div>
         </div>
       </div>
 
-      {error && (
-        <div className="rounded-xl border border-red-100 bg-red-50 p-4">
-          <p className="text-sm font-medium text-red-700">
-            {error}
-          </p>
-        </div>
-      )}
+      {error && <Alert>{error}</Alert>}
     </div>
   );
 }
 
-function AssessmentTimer({
-  expiresAt,
-}: {
-  expiresAt: string;
-}) {
-  const [remainingSeconds, setRemainingSeconds] =
-    useState(0);
+function AssessmentTimer({ expiresAt }: { expiresAt: string }) {
+  const [remainingSeconds, setRemainingSeconds] = useState(0);
 
   useEffect(() => {
     function updateTimer() {
-      const remaining =
-        new Date(expiresAt).getTime() -
-        Date.now();
+      const remaining = new Date(expiresAt).getTime() - Date.now();
 
-      setRemainingSeconds(
-        Math.max(
-          0,
-          Math.floor(remaining / 1000)
-        )
-      );
+      setRemainingSeconds(Math.max(0, Math.floor(remaining / 1000)));
     }
 
     updateTimer();
 
-    const interval = window.setInterval(
-      updateTimer,
-      1000
-    );
+    const interval = window.setInterval(updateTimer, 1000);
 
-    return () =>
-      window.clearInterval(interval);
+    return () => window.clearInterval(interval);
   }, [expiresAt]);
 
-  const minutes = Math.floor(
-    remainingSeconds / 60
-  );
+  const minutes = Math.floor(remainingSeconds / 60);
 
-  const seconds =
-    remainingSeconds % 60;
+  const seconds = remainingSeconds % 60;
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white px-5 py-3 shadow-sm">
-      <p className="text-xs font-medium text-slate-500">
-        Time Left
-      </p>
+      <p className="text-xs font-medium text-slate-500">Time Left</p>
 
       <p className="mt-1 font-mono text-lg font-bold text-slate-900">
-        {String(minutes).padStart(2, "0")}:
-        {String(seconds).padStart(2, "0")}
+        {String(minutes).padStart(2, "0")}:{String(seconds).padStart(2, "0")}
       </p>
     </div>
   );

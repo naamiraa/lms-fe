@@ -1,4 +1,15 @@
 "use client";
+import Button from "@/components/ui/Button";
+
+import Alert from "@/components/shared/Alert";
+
+import LoadingState from "@/components/shared/LoadingState";
+
+import GlassCard from "@/components/shared/GlassCard";
+
+import PageHeader from "@/components/shared/PageHeader";
+
+import SummaryCard from "@/components/shared/MetricCard";
 
 import { useEffect, useState } from "react";
 
@@ -8,9 +19,7 @@ import type {
   LearningContent,
 } from "@/types/admin-learning";
 
-import LearningFormModal, {
-  type LearningModalMode,
-} from "./LearningFormModal";
+import LearningFormModal, { type LearningModalMode } from "./LearningFormModal";
 
 import {
   getTrainingDomains,
@@ -32,26 +41,30 @@ export default function AdminLearningView() {
   const [modules, setModules] = useState<LearningModule[]>([]);
   const [contents, setContents] = useState<LearningContent[]>([]);
 
-  const [selectedDomain, setSelectedDomain] =
-    useState<TrainingDomain | null>(null);
+  const [selectedDomain, setSelectedDomain] = useState<TrainingDomain | null>(
+    null,
+  );
 
-  const [selectedModule, setSelectedModule] =
-    useState<LearningModule | null>(null);
+  const [selectedModule, setSelectedModule] = useState<LearningModule | null>(
+    null,
+  );
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const [modalMode, setModalMode] =
-    useState<LearningModalMode | null>(null);
+  const [modalMode, setModalMode] = useState<LearningModalMode | null>(null);
 
-  const [editingDomain, setEditingDomain] =
-    useState<TrainingDomain | null>(null);
+  const [editingDomain, setEditingDomain] = useState<TrainingDomain | null>(
+    null,
+  );
 
-  const [editingModule, setEditingModule] =
-    useState<LearningModule | null>(null);
+  const [editingModule, setEditingModule] = useState<LearningModule | null>(
+    null,
+  );
 
-  const [editingContent, setEditingContent] =
-    useState<LearningContent | null>(null);
+  const [editingContent, setEditingContent] = useState<LearningContent | null>(
+    null,
+  );
 
   useEffect(() => {
     loadDomains();
@@ -79,9 +92,7 @@ export default function AdminLearningView() {
       }
     } catch (err) {
       setError(
-        err instanceof Error
-          ? err.message
-          : "Failed to load training domains."
+        err instanceof Error ? err.message : "Failed to load training domains.",
       );
     } finally {
       setLoading(false);
@@ -97,9 +108,7 @@ export default function AdminLearningView() {
 
       const data = await getLearningModulesByDomain(domain.id);
 
-      const sorted = [...data].sort(
-        (a, b) => a.order - b.order
-      );
+      const sorted = [...data].sort((a, b) => a.order - b.order);
 
       setModules(sorted);
 
@@ -108,9 +117,7 @@ export default function AdminLearningView() {
       }
     } catch (err) {
       setError(
-        err instanceof Error
-          ? err.message
-          : "Failed to load learning modules."
+        err instanceof Error ? err.message : "Failed to load learning modules.",
       );
     }
   }
@@ -122,19 +129,15 @@ export default function AdminLearningView() {
 
       const data = await getLearningContentsByModule(module.id);
 
-      setContents(
-        [...data].sort((a, b) => a.order - b.order)
-      );
+      setContents([...data].sort((a, b) => a.order - b.order));
     } catch (err) {
       setError(
         err instanceof Error
           ? err.message
-          : "Failed to load learning contents."
+          : "Failed to load learning contents.",
       );
     }
   }
-
-
 
   function closeModal() {
     setModalMode(null);
@@ -177,10 +180,7 @@ export default function AdminLearningView() {
     setModalMode("CONTENT");
   }
 
-
-  async function handleModalSubmit(
-    data: Record<string, string | number>
-  ) {
+  async function handleModalSubmit(data: Record<string, string | number>) {
     setError("");
 
     if (modalMode === "DOMAIN") {
@@ -190,10 +190,7 @@ export default function AdminLearningView() {
       };
 
       if (editingDomain) {
-        await updateTrainingDomain(
-          editingDomain.id,
-          request
-        );
+        await updateTrainingDomain(editingDomain.id, request);
       } else {
         await createTrainingDomain(request);
       }
@@ -212,10 +209,7 @@ export default function AdminLearningView() {
       };
 
       if (editingModule) {
-        await updateLearningModule(
-          editingModule.id,
-          request
-        );
+        await updateLearningModule(editingModule.id, request);
       } else {
         await createLearningModule(request);
       }
@@ -237,10 +231,7 @@ export default function AdminLearningView() {
       };
 
       if (editingContent) {
-        await updateLearningContent(
-          editingContent.id,
-          request
-        );
+        await updateLearningContent(editingContent.id, request);
       } else {
         await createLearningContent(request);
       }
@@ -254,9 +245,7 @@ export default function AdminLearningView() {
   // DEACTIVATE
   // =========================
 
-  async function handleDeactivateDomain(
-    domain: TrainingDomain
-  ) {
+  async function handleDeactivateDomain(domain: TrainingDomain) {
     if (!window.confirm(`Deactivate "${domain.name}"?`)) {
       return;
     }
@@ -270,14 +259,12 @@ export default function AdminLearningView() {
       setError(
         err instanceof Error
           ? err.message
-          : "Failed to deactivate training domain."
+          : "Failed to deactivate training domain.",
       );
     }
   }
 
-  async function handleDeactivateModule(
-    module: LearningModule
-  ) {
+  async function handleDeactivateModule(module: LearningModule) {
     if (!window.confirm(`Deactivate "${module.name}"?`)) {
       return;
     }
@@ -294,14 +281,12 @@ export default function AdminLearningView() {
       setError(
         err instanceof Error
           ? err.message
-          : "Failed to deactivate learning module."
+          : "Failed to deactivate learning module.",
       );
     }
   }
 
-  async function handleDeactivateContent(
-    content: LearningContent
-  ) {
+  async function handleDeactivateContent(content: LearningContent) {
     if (!window.confirm(`Deactivate "${content.title}"?`)) {
       return;
     }
@@ -318,61 +303,47 @@ export default function AdminLearningView() {
       setError(
         err instanceof Error
           ? err.message
-          : "Failed to deactivate learning content."
+          : "Failed to deactivate learning content.",
       );
     }
   }
 
-
   if (loading) {
-    return (
-      <div className="p-6 text-sm text-slate-500">
-        Loading learning management...
-      </div>
-    );
+    return <LoadingState label="Loading learning management..." />;
   }
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6">
       {/* HEADER */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
-          <p className="text-sm font-medium text-blue-600">
-            Administration
-          </p>
+        <PageHeader
+          title={<> Learning Management </>}
+          description={
+            <>
+              {" "}
+              Manage training domains, learning modules, and learning
+              materials.{" "}
+            </>
+          }
+          eyebrow={<> Administration </>}
+        />
 
-          <h1 className="mt-1 text-2xl font-bold text-slate-900">
-            Learning Management
-          </h1>
-
-          <p className="mt-1 text-sm text-slate-500">
-            Manage training domains, learning modules, and learning
-            materials.
-          </p>
-        </div>
-
-        <button
+        <Button
+          fullWidth={false}
           type="button"
           onClick={openAddDomain}
-          className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700"
+          className="rounded-xl bg-[#006CB8] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#005a9c]"
         >
           + Add Training Domain
-        </button>
+        </Button>
       </div>
 
       {/* ERROR */}
-      {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-          {error}
-        </div>
-      )}
+      {error && <Alert>{error}</Alert>}
 
       {/* SUMMARY */}
       <div className="grid gap-4 md:grid-cols-3">
-        <SummaryCard
-          label="Training Domains"
-          value={domains.length}
-        />
+        <SummaryCard label="Training Domains" value={domains.length} />
 
         <SummaryCard
           label="Modules in Selected Domain"
@@ -388,15 +359,13 @@ export default function AdminLearningView() {
       {/* HIERARCHY */}
       <div className="grid gap-5 xl:grid-cols-3">
         {/* ================= DOMAIN ================= */}
-        <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+        <GlassCard as="section" className="overflow-hidden">
           <div className="border-b border-slate-200 p-5">
-            <p className="text-xs font-semibold uppercase tracking-wider text-blue-600">
+            <p className="text-xs font-semibold uppercase tracking-wider text-[#006CB8]">
               Level 1
             </p>
 
-            <h2 className="mt-1 font-bold text-slate-900">
-              Training Domains
-            </h2>
+            <h2 className="mt-1 font-bold text-slate-900">Training Domains</h2>
           </div>
 
           <div className="space-y-2 p-3">
@@ -433,7 +402,7 @@ export default function AdminLearningView() {
                   <button
                     type="button"
                     onClick={() => openEditDomain(domain)}
-                    className="text-xs font-semibold text-blue-600 hover:text-blue-700"
+                    className="text-xs font-semibold text-[#006CB8] hover:text-[#005a9c]"
                   >
                     Edit
                   </button>
@@ -441,9 +410,7 @@ export default function AdminLearningView() {
                   {domain.isActive && (
                     <button
                       type="button"
-                      onClick={() =>
-                        handleDeactivateDomain(domain)
-                      }
+                      onClick={() => handleDeactivateDomain(domain)}
                       className="text-xs font-semibold text-red-600 hover:text-red-700"
                     >
                       Deactivate
@@ -457,13 +424,13 @@ export default function AdminLearningView() {
               <EmptyState text="No training domains available." />
             )}
           </div>
-        </section>
+        </GlassCard>
 
         {/* ================= MODULE ================= */}
-        <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+        <GlassCard as="section" className="overflow-hidden">
           <div className="flex items-center justify-between border-b border-slate-200 p-5">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-blue-600">
+              <p className="text-xs font-semibold uppercase tracking-wider text-[#006CB8]">
                 Level 2
               </p>
 
@@ -476,7 +443,7 @@ export default function AdminLearningView() {
               type="button"
               onClick={openAddModule}
               disabled={!selectedDomain}
-              className="rounded-lg border border-blue-200 px-3 py-2 text-xs font-semibold text-blue-600 hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-40"
+              className="rounded-lg border border-blue-200 px-3 py-2 text-xs font-semibold text-[#006CB8] hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-40"
             >
               + Add
             </button>
@@ -517,9 +484,7 @@ export default function AdminLearningView() {
                           {module.name}
                         </p>
 
-                        <ActiveBadge
-                          active={module.isActive}
-                        />
+                        <ActiveBadge active={module.isActive} />
                       </div>
 
                       <p className="mt-1 line-clamp-2 text-xs text-slate-500">
@@ -533,7 +498,7 @@ export default function AdminLearningView() {
                   <button
                     type="button"
                     onClick={() => openEditModule(module)}
-                    className="text-xs font-semibold text-blue-600 hover:text-blue-700"
+                    className="text-xs font-semibold text-[#006CB8] hover:text-[#005a9c]"
                   >
                     Edit
                   </button>
@@ -541,9 +506,7 @@ export default function AdminLearningView() {
                   {module.isActive && (
                     <button
                       type="button"
-                      onClick={() =>
-                        handleDeactivateModule(module)
-                      }
+                      onClick={() => handleDeactivateModule(module)}
                       className="text-xs font-semibold text-red-600 hover:text-red-700"
                     >
                       Deactivate
@@ -563,12 +526,12 @@ export default function AdminLearningView() {
               />
             )}
           </div>
-        </section>
+        </GlassCard>
 
-        <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+        <GlassCard as="section" className="overflow-hidden">
           <div className="flex items-center justify-between border-b border-slate-200 p-5">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-blue-600">
+              <p className="text-xs font-semibold uppercase tracking-wider text-[#006CB8]">
                 Level 3
               </p>
 
@@ -581,7 +544,7 @@ export default function AdminLearningView() {
               type="button"
               onClick={openAddContent}
               disabled={!selectedModule}
-              className="rounded-lg border border-blue-200 px-3 py-2 text-xs font-semibold text-blue-600 hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-40"
+              className="rounded-lg border border-blue-200 px-3 py-2 text-xs font-semibold text-[#006CB8] hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-40"
             >
               + Add
             </button>
@@ -613,9 +576,7 @@ export default function AdminLearningView() {
                         {content.title}
                       </p>
 
-                      <ActiveBadge
-                        active={content.isActive}
-                      />
+                      <ActiveBadge active={content.isActive} />
                     </div>
 
                     <div className="mt-2 flex flex-wrap gap-2">
@@ -643,10 +604,8 @@ export default function AdminLearningView() {
                     <div className="mt-3 flex gap-3 border-t border-slate-100 pt-3">
                       <button
                         type="button"
-                        onClick={() =>
-                          openEditContent(content)
-                        }
-                        className="text-xs font-semibold text-blue-600 hover:text-blue-700"
+                        onClick={() => openEditContent(content)}
+                        className="text-xs font-semibold text-[#006CB8] hover:text-[#005a9c]"
                       >
                         Edit
                       </button>
@@ -654,9 +613,7 @@ export default function AdminLearningView() {
                       {content.isActive && (
                         <button
                           type="button"
-                          onClick={() =>
-                            handleDeactivateContent(content)
-                          }
+                          onClick={() => handleDeactivateContent(content)}
                           className="text-xs font-semibold text-red-600 hover:text-red-700"
                         >
                           Deactivate
@@ -678,7 +635,7 @@ export default function AdminLearningView() {
               />
             )}
           </div>
-        </section>
+        </GlassCard>
       </div>
 
       {modalMode && (
@@ -696,29 +653,7 @@ export default function AdminLearningView() {
   );
 }
 
-function SummaryCard({
-  label,
-  value,
-}: {
-  label: string;
-  value: number;
-}) {
-  return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5">
-      <p className="text-sm text-slate-500">{label}</p>
-
-      <p className="mt-2 text-3xl font-bold text-slate-900">
-        {value}
-      </p>
-    </div>
-  );
-}
-
-function ActiveBadge({
-  active,
-}: {
-  active: boolean;
-}) {
+function ActiveBadge({ active }: { active: boolean }) {
   return (
     <span
       className={`shrink-0 rounded-full px-2 py-1 text-[10px] font-semibold ${
@@ -732,14 +667,8 @@ function ActiveBadge({
   );
 }
 
-function EmptyState({
-  text,
-}: {
-  text: string;
-}) {
+function EmptyState({ text }: { text: string }) {
   return (
-    <div className="px-4 py-10 text-center text-sm text-slate-400">
-      {text}
-    </div>
+    <div className="px-4 py-10 text-center text-sm text-slate-400">{text}</div>
   );
 }

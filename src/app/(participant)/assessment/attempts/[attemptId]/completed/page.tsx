@@ -1,3 +1,4 @@
+import GlassCard from "@/components/shared/GlassCard";
 import Link from "next/link";
 
 interface AssessmentCompletedPageProps {
@@ -13,7 +14,7 @@ export default async function AssessmentCompletedPage({
 
   return (
     <div className="mx-auto max-w-2xl">
-      <div className="rounded-2xl border border-emerald-100 bg-white p-8 text-center shadow-sm">
+      <GlassCard className="p-6 text-center sm:p-8">
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 text-2xl text-emerald-600">
           ✓
         </div>
@@ -27,9 +28,8 @@ export default async function AssessmentCompletedPage({
         </h1>
 
         <p className="mx-auto mt-3 max-w-lg text-sm leading-6 text-slate-500">
-          Your answers have been submitted successfully.
-          Your theory assessment result will be shown
-          together with your simulator performance after
+          Your answers have been submitted successfully. Your theory assessment
+          result will be shown together with your simulator performance after
           the simulation is completed.
         </p>
 
@@ -39,20 +39,20 @@ export default async function AssessmentCompletedPage({
           </p>
 
           <p className="mt-1 text-sm leading-6 text-slate-600">
-            Continue to Simulation to select your
-            operational domain and training scenario.
+            Continue to Simulation to select your operational domain and
+            training scenario.
           </p>
         </div>
 
         <Link
           href={`/simulation?assessmentAttemptId=${encodeURIComponent(
-            attemptId
+            attemptId,
           )}`}
           className="mt-6 inline-flex rounded-xl bg-[#006CB8] px-6 py-3 text-sm font-semibold text-white transition hover:opacity-90"
         >
           Continue to Simulation →
         </Link>
-      </div>
+      </GlassCard>
     </div>
   );
 }
