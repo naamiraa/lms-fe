@@ -1,28 +1,59 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import type { AdminUser } from "@/types/admin-user";
+
+import ConfirmModal from "@/components/ConfirmModal";
 import {
   approveUser,
   assignUserRole,
   getAdminUsers,
   rejectUser,
 } from "@/services/admin-user.service";
+import type { AdminUser } from "@/types/admin-user";
 
-type StatusFilter = "ALL" | "APPROVED" | "PENDING" | "REJECTED";
-type RoleFilter = "ALL" | "PARTICIPANT" | "INSTRUCTOR" | "ADMIN";
+type StatusFilter =
+  | "ALL"
+  | "APPROVED"
+  | "PENDING"
+  | "REJECTED";
+
+type RoleFilter =
+  | "ALL"
+  | "PARTICIPANT"
+  | "INSTRUCTOR"
+  | "ADMIN";
 
 export default function AdminUsersView() {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [processingId, setProcessingId] = useState<string | null>(null);
+
+  const [processingId, setProcessingId] = useState<
+    string | null
+  >(null);
 
   const [search, setSearch] = useState("");
+
   const [statusFilter, setStatusFilter] =
     useState<StatusFilter>("ALL");
+
   const [roleFilter, setRoleFilter] =
     useState<RoleFilter>("ALL");
+
+  const [confirmAction, setConfirmAction] = useState<{
+    type: "APPROVE" | "REJECT";
+    userId: string;
+    userName: string;
+  } | null>(null);
+
+  const [processingAction, setProcessingAction] =
+    useState(false);
+
+  const [confirmRoleChange, setConfirmRoleChange] =
+    useState<{
+      user: AdminUser;
+      newRole: string;
+    } | null>(null);
 
   async function loadUsers() {
     try {
@@ -43,46 +74,58 @@ export default function AdminUsersView() {
   }
 
   useEffect(() => {
-    loadUsers();
+    void loadUsers();
   }, []);
 
-  async function handleApprove(id: string) {
+  function handleApprove(
+    userId: string,
+    userName: string
+  ) {
+    setConfirmAction({
+      type: "APPROVE",
+      userId,
+      userName,
+    });
+  }
+
+  function handleReject(
+    userId: string,
+    userName: string
+  ) {
+    setConfirmAction({
+      type: "REJECT",
+      userId,
+      userName,
+    });
+  }
+
+  async function handleConfirmAction() {
+    if (!confirmAction) return;
+
     try {
-      setProcessingId(id);
+      setProcessingAction(true);
       setError("");
 
-      await approveUser(id);
+      if (confirmAction.type === "APPROVE") {
+        await approveUser(confirmAction.userId);
+      } else {
+        await rejectUser(confirmAction.userId);
+      }
+
+      setConfirmAction(null);
       await loadUsers();
     } catch (err) {
       setError(
         err instanceof Error
           ? err.message
-          : "Failed to approve user."
+          : `Failed to ${confirmAction.type.toLowerCase()} user.`
       );
     } finally {
-      setProcessingId(null);
+      setProcessingAction(false);
     }
   }
 
-  async function handleReject(id: string) {
-    try {
-      setProcessingId(id);
-      setError("");
-
-      await rejectUser(id);
-      await loadUsers();
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Failed to reject user."
-      );
-    } finally {
-      setProcessingId(null);
-    }
-  }
-
-  async function handleRoleChange(
+  function handleRoleChange(
     user: AdminUser,
     role: string
   ) {
@@ -90,11 +133,25 @@ export default function AdminUsersView() {
       return;
     }
 
+    setConfirmRoleChange({
+      user,
+      newRole: role,
+    });
+  }
+
+  async function handleConfirmRoleChange() {
+    if (!confirmRoleChange) return;
+
     try {
-      setProcessingId(user.id);
+      setProcessingId(confirmRoleChange.user.id);
       setError("");
 
-      await assignUserRole(user.id, role);
+      await assignUserRole(
+        confirmRoleChange.user.id,
+        confirmRoleChange.newRole
+      );
+
+      setConfirmRoleChange(null);
       await loadUsers();
     } catch (err) {
       setError(
@@ -115,7 +172,9 @@ export default function AdminUsersView() {
         !keyword ||
         user.name.toLowerCase().includes(keyword) ||
         user.email.toLowerCase().includes(keyword) ||
-        user.employeeNumber?.toLowerCase().includes(keyword);
+        user.employeeNumber
+          ?.toLowerCase()
+          .includes(keyword);
 
       const matchesStatus =
         statusFilter === "ALL" ||
@@ -125,7 +184,11 @@ export default function AdminUsersView() {
         roleFilter === "ALL" ||
         user.roles.includes(roleFilter);
 
-      return matchesSearch && matchesStatus && matchesRole;
+      return (
+        matchesSearch &&
+        matchesStatus &&
+        matchesRole
+      );
     });
   }, [users, search, statusFilter, roleFilter]);
 
@@ -151,6 +214,7 @@ export default function AdminUsersView() {
 
   return (
     <div className="space-y-6 p-6">
+      {/* HEADER */}
       <div>
         <p className="text-sm font-medium text-blue-600">
           Administration
@@ -161,37 +225,49 @@ export default function AdminUsersView() {
         </h1>
 
         <p className="mt-1 text-sm text-slate-500">
-          Manage LMS users, registration approvals, and access roles.
+          Manage LMS users, registration approvals, and
+          access roles.
         </p>
       </div>
 
+      {/* ERROR */}
       {error && (
         <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
           {error}
         </div>
       )}
 
+      {/* SUMMARY */}
       <div className="grid gap-4 md:grid-cols-4">
-        <SummaryCard label="Total Users" value={users.length} />
+        <SummaryCard
+          label="Total Users"
+          value={users.length}
+        />
+
         <SummaryCard
           label="Participants"
           value={participantCount}
         />
+
         <SummaryCard
           label="Instructors"
           value={instructorCount}
         />
+
         <SummaryCard
           label="Pending Approval"
           value={pendingCount}
         />
       </div>
 
+      {/* FILTER */}
       <div className="rounded-2xl border border-slate-200 bg-white p-4">
         <div className="grid gap-3 lg:grid-cols-[1fr_auto_auto]">
           <input
             value={search}
-            onChange={(event) => setSearch(event.target.value)}
+            onChange={(event) =>
+              setSearch(event.target.value)
+            }
             placeholder="Search name, email, or employee number..."
             className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-blue-500"
           />
@@ -199,13 +275,19 @@ export default function AdminUsersView() {
           <select
             value={roleFilter}
             onChange={(event) =>
-              setRoleFilter(event.target.value as RoleFilter)
+              setRoleFilter(
+                event.target.value as RoleFilter
+              )
             }
             className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none"
           >
             <option value="ALL">All Roles</option>
-            <option value="PARTICIPANT">Participant</option>
-            <option value="INSTRUCTOR">Instructor</option>
+            <option value="PARTICIPANT">
+              Participant
+            </option>
+            <option value="INSTRUCTOR">
+              Instructor
+            </option>
             <option value="ADMIN">Admin</option>
           </select>
 
@@ -219,24 +301,35 @@ export default function AdminUsersView() {
             className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none"
           >
             <option value="ALL">All Status</option>
-            <option value="APPROVED">Approved</option>
-            <option value="PENDING">Pending</option>
-            <option value="REJECTED">Rejected</option>
+            <option value="APPROVED">
+              Approved
+            </option>
+            <option value="PENDING">
+              Pending
+            </option>
+            <option value="REJECTED">
+              Rejected
+            </option>
           </select>
         </div>
       </div>
 
+      {/* USER TABLE */}
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
               <tr>
                 <th className="px-5 py-4">User</th>
-                <th className="px-5 py-4">Employee No.</th>
+                <th className="px-5 py-4">
+                  Employee No.
+                </th>
                 <th className="px-5 py-4">Role</th>
                 <th className="px-5 py-4">Source</th>
                 <th className="px-5 py-4">Status</th>
-                <th className="px-5 py-4">Registered</th>
+                <th className="px-5 py-4">
+                  Registered
+                </th>
                 <th className="px-5 py-4">Action</th>
               </tr>
             </thead>
@@ -254,19 +347,23 @@ export default function AdminUsersView() {
                     key={user.id}
                     className="hover:bg-slate-50"
                   >
+                    {/* USER */}
                     <td className="px-5 py-4">
                       <p className="font-semibold text-slate-900">
                         {user.name}
                       </p>
+
                       <p className="mt-1 text-xs text-slate-500">
                         {user.email}
                       </p>
                     </td>
 
+                    {/* EMPLOYEE NUMBER */}
                     <td className="px-5 py-4 text-slate-600">
                       {user.employeeNumber || "-"}
                     </td>
 
+                    {/* ROLE */}
                     <td className="px-5 py-4">
                       {isAdmin ? (
                         <span className="font-medium text-slate-700">
@@ -275,18 +372,22 @@ export default function AdminUsersView() {
                       ) : (
                         <select
                           value={user.roles[0] ?? ""}
-                          disabled={isProcessing}
+                          disabled={
+                            isProcessing ||
+                            processingAction
+                          }
                           onChange={(event) =>
                             handleRoleChange(
                               user,
                               event.target.value
                             )
                           }
-                          className="rounded-lg border border-slate-200 px-2.5 py-2 text-xs font-semibold outline-none"
+                          className="rounded-lg border border-slate-200 px-2.5 py-2 text-xs font-semibold outline-none disabled:opacity-50"
                         >
                           <option value="PARTICIPANT">
                             PARTICIPANT
                           </option>
+
                           <option value="INSTRUCTOR">
                             INSTRUCTOR
                           </option>
@@ -294,41 +395,60 @@ export default function AdminUsersView() {
                       )}
                     </td>
 
+                    {/* SOURCE */}
                     <td className="px-5 py-4 text-slate-600">
                       {user.registrationSource}
                     </td>
 
+                    {/* STATUS */}
                     <td className="px-5 py-4">
                       <StatusBadge
                         status={user.approvalStatus}
                       />
                     </td>
 
+                    {/* REGISTERED */}
                     <td className="whitespace-nowrap px-5 py-4 text-slate-600">
                       {new Date(
                         user.createdAt
                       ).toLocaleDateString()}
                     </td>
 
+                    {/* ACTION */}
                     <td className="px-5 py-4">
-                      {user.approvalStatus === "PENDING" ? (
+                      {user.approvalStatus ===
+                      "PENDING" ? (
                         <div className="flex gap-2">
                           <button
-                            disabled={isProcessing}
-                            onClick={() =>
-                              handleApprove(user.id)
+                            type="button"
+                            disabled={
+                              isProcessing ||
+                              processingAction
                             }
-                            className="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white disabled:opacity-50"
+                            onClick={() =>
+                              handleApprove(
+                                user.id,
+                                user.name
+                              )
+                            }
+                            className="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
                           >
                             Approve
                           </button>
 
                           <button
-                            disabled={isProcessing}
-                            onClick={() =>
-                              handleReject(user.id)
+                            type="button"
+                            disabled={
+                              isProcessing ||
+                              processingAction
                             }
-                            className="rounded-lg border border-red-200 px-3 py-2 text-xs font-semibold text-red-600 disabled:opacity-50"
+                            onClick={() =>
+                              handleReject(
+                                user.id,
+                                user.name
+                              )
+                            }
+                            className="rounded-lg border border-red-200 px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 disabled:opacity-50"
                           >
                             Reject
                           </button>
@@ -352,6 +472,65 @@ export default function AdminUsersView() {
           )}
         </div>
       </div>
+
+      {/* APPROVE / REJECT CONFIRMATION */}
+      <ConfirmModal
+        open={confirmAction !== null}
+        title={
+          confirmAction?.type === "APPROVE"
+            ? "Approve User?"
+            : "Reject User?"
+        }
+        message={
+          confirmAction
+            ? confirmAction.type === "APPROVE"
+              ? `Are you sure you want to approve "${confirmAction.userName}"? The user will be able to sign in after approval.`
+              : `Are you sure you want to reject "${confirmAction.userName}"?`
+            : ""
+        }
+        confirmLabel={
+          confirmAction?.type === "APPROVE"
+            ? "Approve"
+            : "Reject"
+        }
+        variant={
+          confirmAction?.type === "APPROVE"
+            ? "success"
+            : "danger"
+        }
+        loading={processingAction}
+        onCancel={() => {
+          if (!processingAction) {
+            setConfirmAction(null);
+          }
+        }}
+        onConfirm={handleConfirmAction}
+      />
+
+      {/* ROLE CHANGE CONFIRMATION */}
+      <ConfirmModal
+        open={confirmRoleChange !== null}
+        title="Change User Role?"
+        message={
+          confirmRoleChange
+            ? `Are you sure you want to change "${confirmRoleChange.user.name}" from ${confirmRoleChange.user.roles[0]} to ${confirmRoleChange.newRole}? This will change the user's access permissions.`
+            : ""
+        }
+        confirmLabel="Change Role"
+        variant="danger"
+        loading={
+          confirmRoleChange
+            ? processingId ===
+              confirmRoleChange.user.id
+            : false
+        }
+        onCancel={() => {
+          if (!processingId) {
+            setConfirmRoleChange(null);
+          }
+        }}
+        onConfirm={handleConfirmRoleChange}
+      />
     </div>
   );
 }
@@ -365,7 +544,10 @@ function SummaryCard({
 }) {
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-5">
-      <p className="text-sm text-slate-500">{label}</p>
+      <p className="text-sm text-slate-500">
+        {label}
+      </p>
+
       <p className="mt-2 text-3xl font-bold text-slate-900">
         {value}
       </p>
@@ -373,7 +555,11 @@ function SummaryCard({
   );
 }
 
-function StatusBadge({ status }: { status: string }) {
+function StatusBadge({
+  status,
+}: {
+  status: string;
+}) {
   const className =
     status === "APPROVED"
       ? "bg-emerald-50 text-emerald-700"

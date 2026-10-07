@@ -93,6 +93,17 @@ export default function LoginForm() {
       >
         Sign In
       </Button>
+
+      <p className="text-center text-sm text-slate-500">
+        Don&apos;t have an account?{" "}
+        <button
+          type="button"
+          onClick={() => router.push("/register")}
+          className="font-semibold text-[#006CB8] hover:text-blue-700"
+        >
+          Register
+        </button>
+      </p>
     </form>
   );
 }

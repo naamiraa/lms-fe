@@ -7,6 +7,7 @@ interface ConfirmModalProps {
   confirmLabel?: string;
   cancelLabel?: string;
   loading?: boolean;
+  variant?: "danger" | "success";
   onConfirm: () => void | Promise<void>;
   onCancel: () => void;
 }
@@ -18,17 +19,26 @@ export default function ConfirmModal({
   confirmLabel = "Confirm",
   cancelLabel = "Cancel",
   loading = false,
+  variant = "danger",
   onConfirm,
   onCancel,
 }: ConfirmModalProps) {
   if (!open) return null;
 
+  const isSuccess = variant === "success";
+
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/40 p-4">
       <div className="w-full max-w-md rounded-2xl bg-white shadow-xl">
         <div className="p-6">
-          <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-red-50 text-red-600">
-            !
+          <div
+            className={`mb-4 flex h-11 w-11 items-center justify-center rounded-full font-semibold ${
+              isSuccess
+                ? "bg-emerald-50 text-emerald-600"
+                : "bg-red-50 text-red-600"
+            }`}
+          >
+            {isSuccess ? "✓" : "!"}
           </div>
 
           <h2 className="text-lg font-semibold text-slate-900">
@@ -54,7 +64,11 @@ export default function ConfirmModal({
             type="button"
             onClick={() => void onConfirm()}
             disabled={loading}
-            className="rounded-xl bg-red-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
+            className={`rounded-xl px-4 py-2.5 text-sm font-medium text-white disabled:opacity-50 ${
+              isSuccess
+                ? "bg-emerald-600 hover:bg-emerald-700"
+                : "bg-red-600 hover:bg-red-700"
+            }`}
           >
             {loading ? "Processing..." : confirmLabel}
           </button>

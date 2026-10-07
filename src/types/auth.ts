@@ -12,3 +12,14 @@ export interface LoginResponse {
   email: string;
   roles: UserRole[];
 }
+
+export interface RegisterRequest {
+  name: string;
+  email: string;
+  employeeNumber?: string | null;
+  password: string;
+}
+
+export interface RegisterResponse {
+  message: string;
+}
