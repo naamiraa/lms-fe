@@ -1,6 +1,5 @@
 "use client";
 import { useEffect, useRef, type ReactNode } from "react";
-// Shared dialog focus, scroll locking, keyboard navigation and glass backdrop.
 export default function ModalFrame({
   children,
   onClose,

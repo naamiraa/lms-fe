@@ -93,7 +93,7 @@ export default function HistoryView() {
             href="/learning"
             className="mt-5 inline-flex rounded-xl bg-[#006CB8] px-5 py-3 text-sm font-semibold text-white"
           >
-            Start Learning →
+            Start Learning
           </Link>
         </GlassCard>
       ) : (
@@ -205,7 +205,7 @@ function HistoryCard({ item }: { item: TrainingHistoryItem }) {
             )}`}
             className="rounded-xl bg-[#006CB8] px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-90"
           >
-            View Feedback →
+            View Feedback
           </Link>
         )}
       </div>

@@ -1,4 +1,7 @@
 "use client";
+import AdminWorkflow from "@/components/shared/AdminWorkflow";
+import AdminPhotoBanner from "@/components/shared/AdminPhotoBanner";
+import AdminSelectionImage from "@/components/shared/AdminSelectionImage";
 import Button from "@/components/ui/Button";
 
 import Alert from "@/components/shared/Alert";
@@ -11,7 +14,7 @@ import PageHeader from "@/components/shared/PageHeader";
 
 import SummaryCard from "@/components/shared/MetricCard";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import type {
   TrainingDomain,
@@ -51,6 +54,10 @@ export default function AdminLearningView() {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [modulesLoading, setModulesLoading] = useState(false);
+  const [contentsLoading, setContentsLoading] = useState(false);
+  const domainRequest = useRef(0);
+  const contentRequest = useRef(0);
 
   const [modalMode, setModalMode] = useState<LearningModalMode | null>(null);
 
@@ -70,9 +77,7 @@ export default function AdminLearningView() {
     loadDomains();
   }, []);
 
-  // =========================
-  // LOAD DATA
-  // =========================
+
 
   async function loadDomains() {
     try {
@@ -100,42 +105,51 @@ export default function AdminLearningView() {
   }
 
   async function selectDomain(domain: TrainingDomain) {
+    const request = ++domainRequest.current;
+    ++contentRequest.current;
+    setError("");
+    setSelectedDomain(domain);
+    setSelectedModule(null);
+    setModules([]);
+    setContents([]);
+    setModulesLoading(true);
+    setContentsLoading(false);
     try {
-      setError("");
-      setSelectedDomain(domain);
-      setSelectedModule(null);
-      setContents([]);
-
       const data = await getLearningModulesByDomain(domain.id);
-
+      if (request !== domainRequest.current) return;
       const sorted = [...data].sort((a, b) => a.order - b.order);
-
       setModules(sorted);
-
-      if (sorted.length > 0) {
-        await selectModule(sorted[0]);
-      }
+      if (sorted.length > 0) await selectModule(sorted[0]);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to load learning modules.",
-      );
+      if (request === domainRequest.current)
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Failed to load learning modules.",
+        );
+    } finally {
+      if (request === domainRequest.current) setModulesLoading(false);
     }
   }
-
   async function selectModule(module: LearningModule) {
+    const request = ++contentRequest.current;
+    setError("");
+    setSelectedModule(module);
+    setContents([]);
+    setContentsLoading(true);
     try {
-      setError("");
-      setSelectedModule(module);
-
       const data = await getLearningContentsByModule(module.id);
-
-      setContents([...data].sort((a, b) => a.order - b.order));
+      if (request === contentRequest.current)
+        setContents([...data].sort((a, b) => a.order - b.order));
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Failed to load learning contents.",
-      );
+      if (request === contentRequest.current)
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Failed to load learning contents.",
+        );
+    } finally {
+      if (request === contentRequest.current) setContentsLoading(false);
     }
   }
 
@@ -241,9 +255,7 @@ export default function AdminLearningView() {
     }
   }
 
-  // =========================
   // DEACTIVATE
-  // =========================
 
   async function handleDeactivateDomain(domain: TrainingDomain) {
     if (!window.confirm(`Deactivate "${domain.name}"?`)) {
@@ -321,8 +333,8 @@ export default function AdminLearningView() {
           description={
             <>
               {" "}
-              Manage training domains, learning modules, and learning
-              materials.{" "}
+              Choose a training domain, open a module, then add or edit its
+              learning materials.{" "}
             </>
           }
           eyebrow={<> Administration </>}
@@ -356,19 +368,44 @@ export default function AdminLearningView() {
         />
       </div>
 
+      <AdminWorkflow
+        steps={[
+          {
+            title: "Choose a training domain",
+            description:
+              "Domains group related training, such as Ground Operations.",
+            selection: selectedDomain?.name,
+          },
+          {
+            title: "Open a learning module",
+            description: "A module is one topic inside the selected domain.",
+            selection: selectedModule?.name,
+          },
+          {
+            title: "Manage module materials",
+            description: "Add videos, documents, or text to the open module.",
+          },
+        ]}
+      />
       {/* HIERARCHY */}
-      <div className="grid gap-5 xl:grid-cols-3">
+      <div className="space-y-6">
         {/* ================= DOMAIN ================= */}
         <GlassCard as="section" className="overflow-hidden">
           <div className="border-b border-slate-200 p-5">
             <p className="text-xs font-semibold uppercase tracking-wider text-[#006CB8]">
-              Level 1
+              Training categories
             </p>
 
-            <h2 className="mt-1 font-bold text-slate-900">Training Domains</h2>
+            <h2 className="mt-1 font-bold text-slate-900">
+              Choose a Training Domain
+            </h2>
+            <p className="mt-2 text-sm text-slate-500">
+              Select a card below to show its modules. The highlighted card is
+              currently open.
+            </p>
           </div>
 
-          <div className="space-y-2 p-3">
+          <div className="grid gap-3 p-4 sm:grid-cols-2 xl:grid-cols-3">
             {domains.map((domain) => (
               <div
                 key={domain.id}
@@ -381,8 +418,10 @@ export default function AdminLearningView() {
                 <button
                   type="button"
                   onClick={() => selectDomain(domain)}
+                  aria-pressed={selectedDomain?.id === domain.id}
                   className="w-full text-left"
                 >
+                  <AdminSelectionImage name={domain.name} large />
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <p className="font-semibold text-slate-900">
@@ -396,6 +435,11 @@ export default function AdminLearningView() {
 
                     <ActiveBadge active={domain.isActive} />
                   </div>
+                  <p className="mt-3 text-xs font-bold text-[#006CB8]">
+                    {selectedDomain?.id === domain.id
+                      ? "✓ Domain open"
+                      : "View modules →"}
+                  </p>
                 </button>
 
                 <div className="mt-3 flex gap-3 border-t border-slate-100 pt-3">
@@ -426,216 +470,237 @@ export default function AdminLearningView() {
           </div>
         </GlassCard>
 
-        {/* ================= MODULE ================= */}
-        <GlassCard as="section" className="overflow-hidden">
-          <div className="flex items-center justify-between border-b border-slate-200 p-5">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-[#006CB8]">
-                Level 2
-              </p>
+        {selectedDomain && (
+          <AdminPhotoBanner
+            name={selectedDomain.name}
+            title={selectedDomain.name}
+            description="Modules below belong to this domain. Open a module on the left to manage its materials on the right."
+          />
+        )}
+        <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,0.85fr)_minmax(0,1.35fr)]">
+          {/* ================= MODULE ================= */}
+          <GlassCard as="section" className="overflow-hidden">
+            <div className="flex items-center justify-between border-b border-slate-200 p-5">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-[#006CB8]">
+                  Inside the selected domain
+                </p>
 
-              <h2 className="mt-1 font-bold text-slate-900">
-                Learning Modules
-              </h2>
-            </div>
+                <h2 className="mt-1 font-bold text-slate-900">
+                  Modules in This Domain
+                </h2>
+              </div>
 
-            <button
-              type="button"
-              onClick={openAddModule}
-              disabled={!selectedDomain}
-              className="rounded-lg border border-blue-200 px-3 py-2 text-xs font-semibold text-[#006CB8] hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              + Add
-            </button>
-          </div>
-
-          {selectedDomain && (
-            <div className="border-b border-slate-100 bg-slate-50 px-5 py-3 text-xs text-slate-500">
-              Domain:{" "}
-              <span className="font-semibold text-slate-700">
-                {selectedDomain.name}
-              </span>
-            </div>
-          )}
-
-          <div className="space-y-2 p-3">
-            {modules.map((module) => (
-              <div
-                key={module.id}
-                className={`rounded-xl border p-4 transition ${
-                  selectedModule?.id === module.id
-                    ? "border-blue-500 bg-blue-50"
-                    : "border-transparent hover:bg-slate-50"
-                }`}
+              <button
+                type="button"
+                onClick={openAddModule}
+                disabled={!selectedDomain}
+                className="rounded-lg border border-blue-200 px-3 py-2 text-xs font-semibold text-[#006CB8] hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-40"
               >
-                <button
-                  type="button"
-                  onClick={() => selectModule(module)}
-                  className="w-full text-left"
+                + Add Module
+              </button>
+            </div>
+
+            {selectedDomain && (
+              <div className="border-b border-slate-100 bg-slate-50 px-5 py-3 text-xs text-slate-500">
+                Domain:{" "}
+                <span className="font-semibold text-slate-700">
+                  {selectedDomain.name}
+                </span>
+              </div>
+            )}
+
+            <div className="space-y-2 p-3">
+              {modulesLoading && (
+                <LoadingState label="Loading modules in this domain..." />
+              )}
+              {modules.map((module) => (
+                <div
+                  key={module.id}
+                  className={`rounded-xl border p-4 transition ${
+                    selectedModule?.id === module.id
+                      ? "border-blue-500 bg-blue-50"
+                      : "border-transparent hover:bg-slate-50"
+                  }`}
+                >
+                  <button
+                    type="button"
+                    onClick={() => selectModule(module)}
+                    aria-pressed={selectedModule?.id === module.id}
+                    className="w-full text-left"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-xs font-bold text-slate-600">
+                        {module.order}
+                      </div>
+
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-start justify-between gap-2">
+                          <p className="font-semibold text-slate-900">
+                            {module.name}
+                          </p>
+
+                          <ActiveBadge active={module.isActive} />
+                        </div>
+
+                        <p className="mt-1 line-clamp-2 text-xs text-slate-500">
+                          {module.description || "No description"}
+                        </p>
+                      </div>
+                    </div>
+                    <p className="mt-3 text-xs font-bold text-[#006CB8]">
+                      {selectedModule?.id === module.id
+                        ? "✓ Showing materials"
+                        : "Manage materials →"}
+                    </p>
+                  </button>
+
+                  <div className="mt-3 flex gap-3 border-t border-slate-100 pt-3">
+                    <button
+                      type="button"
+                      onClick={() => openEditModule(module)}
+                      className="text-xs font-semibold text-[#006CB8] hover:text-[#005a9c]"
+                    >
+                      Edit
+                    </button>
+
+                    {module.isActive && (
+                      <button
+                        type="button"
+                        onClick={() => handleDeactivateModule(module)}
+                        className="text-xs font-semibold text-red-600 hover:text-red-700"
+                      >
+                        Deactivate
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+
+              {!modulesLoading && modules.length === 0 && (
+                <EmptyState
+                  text={
+                    selectedDomain
+                      ? "This domain has no modules yet. Click Add Module to create a learning topic."
+                      : "Select a training domain."
+                  }
+                />
+              )}
+            </div>
+          </GlassCard>
+
+          <GlassCard as="section" className="overflow-hidden">
+            <div className="flex items-center justify-between border-b border-slate-200 p-5">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-[#006CB8]">
+                  Inside the selected module
+                </p>
+
+                <h2 className="mt-1 font-bold text-slate-900">
+                  Materials in This Module
+                </h2>
+              </div>
+
+              <button
+                type="button"
+                onClick={openAddContent}
+                disabled={!selectedModule}
+                className="rounded-lg border border-blue-200 px-3 py-2 text-xs font-semibold text-[#006CB8] hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                + Add Material
+              </button>
+            </div>
+
+            {selectedModule && (
+              <div className="border-b border-slate-100 bg-slate-50 px-5 py-3 text-xs text-slate-500">
+                Module:{" "}
+                <span className="font-semibold text-slate-700">
+                  {selectedModule.name}
+                </span>
+              </div>
+            )}
+
+            <div className="space-y-3 p-3">
+              {contentsLoading && (
+                <LoadingState label="Loading materials in this module..." />
+              )}
+              {contents.map((content) => (
+                <div
+                  key={content.id}
+                  className="rounded-xl border border-slate-100 p-4"
                 >
                   <div className="flex items-start gap-3">
                     <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-xs font-bold text-slate-600">
-                      {module.order}
+                      {content.order}
                     </div>
 
                     <div className="min-w-0 flex-1">
                       <div className="flex items-start justify-between gap-2">
                         <p className="font-semibold text-slate-900">
-                          {module.name}
+                          {content.title}
                         </p>
 
-                        <ActiveBadge active={module.isActive} />
+                        <ActiveBadge active={content.isActive} />
                       </div>
 
-                      <p className="mt-1 line-clamp-2 text-xs text-slate-500">
-                        {module.description || "No description"}
-                      </p>
-                    </div>
-                  </div>
-                </button>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        <span className="rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-blue-700">
+                          {content.contentType}
+                        </span>
 
-                <div className="mt-3 flex gap-3 border-t border-slate-100 pt-3">
-                  <button
-                    type="button"
-                    onClick={() => openEditModule(module)}
-                    className="text-xs font-semibold text-[#006CB8] hover:text-[#005a9c]"
-                  >
-                    Edit
-                  </button>
+                        <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] text-slate-600">
+                          {content.estimatedMinutes} min
+                        </span>
+                      </div>
 
-                  {module.isActive && (
-                    <button
-                      type="button"
-                      onClick={() => handleDeactivateModule(module)}
-                      className="text-xs font-semibold text-red-600 hover:text-red-700"
-                    >
-                      Deactivate
-                    </button>
-                  )}
-                </div>
-              </div>
-            ))}
+                      {content.description && (
+                        <p className="mt-2 line-clamp-2 text-xs text-slate-500">
+                          {content.description}
+                        </p>
+                      )}
 
-            {modules.length === 0 && (
-              <EmptyState
-                text={
-                  selectedDomain
-                    ? "No learning modules in this domain."
-                    : "Select a training domain."
-                }
-              />
-            )}
-          </div>
-        </GlassCard>
+                      {content.contentUrl && (
+                        <p className="mt-2 truncate text-xs text-slate-400">
+                          {content.contentUrl}
+                        </p>
+                      )}
 
-        <GlassCard as="section" className="overflow-hidden">
-          <div className="flex items-center justify-between border-b border-slate-200 p-5">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-[#006CB8]">
-                Level 3
-              </p>
-
-              <h2 className="mt-1 font-bold text-slate-900">
-                Learning Contents
-              </h2>
-            </div>
-
-            <button
-              type="button"
-              onClick={openAddContent}
-              disabled={!selectedModule}
-              className="rounded-lg border border-blue-200 px-3 py-2 text-xs font-semibold text-[#006CB8] hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              + Add
-            </button>
-          </div>
-
-          {selectedModule && (
-            <div className="border-b border-slate-100 bg-slate-50 px-5 py-3 text-xs text-slate-500">
-              Module:{" "}
-              <span className="font-semibold text-slate-700">
-                {selectedModule.name}
-              </span>
-            </div>
-          )}
-
-          <div className="space-y-3 p-3">
-            {contents.map((content) => (
-              <div
-                key={content.id}
-                className="rounded-xl border border-slate-100 p-4"
-              >
-                <div className="flex items-start gap-3">
-                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-xs font-bold text-slate-600">
-                    {content.order}
-                  </div>
-
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-start justify-between gap-2">
-                      <p className="font-semibold text-slate-900">
-                        {content.title}
-                      </p>
-
-                      <ActiveBadge active={content.isActive} />
-                    </div>
-
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      <span className="rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-blue-700">
-                        {content.contentType}
-                      </span>
-
-                      <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] text-slate-600">
-                        {content.estimatedMinutes} min
-                      </span>
-                    </div>
-
-                    {content.description && (
-                      <p className="mt-2 line-clamp-2 text-xs text-slate-500">
-                        {content.description}
-                      </p>
-                    )}
-
-                    {content.contentUrl && (
-                      <p className="mt-2 truncate text-xs text-slate-400">
-                        {content.contentUrl}
-                      </p>
-                    )}
-
-                    <div className="mt-3 flex gap-3 border-t border-slate-100 pt-3">
-                      <button
-                        type="button"
-                        onClick={() => openEditContent(content)}
-                        className="text-xs font-semibold text-[#006CB8] hover:text-[#005a9c]"
-                      >
-                        Edit
-                      </button>
-
-                      {content.isActive && (
+                      <div className="mt-3 flex gap-3 border-t border-slate-100 pt-3">
                         <button
                           type="button"
-                          onClick={() => handleDeactivateContent(content)}
-                          className="text-xs font-semibold text-red-600 hover:text-red-700"
+                          onClick={() => openEditContent(content)}
+                          className="text-xs font-semibold text-[#006CB8] hover:text-[#005a9c]"
                         >
-                          Deactivate
+                          Edit
                         </button>
-                      )}
+
+                        {content.isActive && (
+                          <button
+                            type="button"
+                            onClick={() => handleDeactivateContent(content)}
+                            className="text-xs font-semibold text-red-600 hover:text-red-700"
+                          >
+                            Deactivate
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
 
-            {contents.length === 0 && (
-              <EmptyState
-                text={
-                  selectedModule
-                    ? "No learning contents in this module."
-                    : "Select a learning module."
-                }
-              />
-            )}
-          </div>
-        </GlassCard>
+              {!contentsLoading && contents.length === 0 && (
+                <EmptyState
+                  text={
+                    selectedModule
+                      ? "This module has no materials yet. Click Add Material to create its first lesson."
+                      : "Select a learning module."
+                  }
+                />
+              )}
+            </div>
+          </GlassCard>
+        </div>
       </div>
 
       {modalMode && (
@@ -645,6 +710,13 @@ export default function AdminLearningView() {
           domain={editingDomain}
           module={editingModule}
           content={editingContent}
+          parentLabel={
+            modalMode === "MODULE"
+              ? `Training domain: ${selectedDomain?.name}`
+              : modalMode === "CONTENT"
+                ? `Learning module: ${selectedModule?.name}`
+                : undefined
+          }
           onClose={closeModal}
           onSubmit={handleModalSubmit}
         />

@@ -207,7 +207,7 @@ function RecentSession({ session }: { session: InstructorRecentSession }) {
             )}`}
             className="rounded-xl bg-[#006CB8] px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90"
           >
-            Evaluate →
+            Evaluate
           </Link>
         )}
       </div>

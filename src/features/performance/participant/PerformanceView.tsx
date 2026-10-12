@@ -3,6 +3,8 @@ import LoadingState from "@/components/shared/LoadingState";
 
 import GlassCard from "@/components/shared/GlassCard";
 
+import ScoreGauge from "@/components/shared/ScoreGauge";
+import TrainingJourney from "@/components/shared/TrainingJourney";
 import PageHeader from "@/components/shared/PageHeader";
 
 import { useEffect, useState } from "react";
@@ -101,6 +103,7 @@ export default function PerformanceView() {
         eyebrow={<> Training Result </>}
       />
 
+      <TrainingJourney active={3} />
       <section
         className={`rounded-2xl border p-6 ${
           passed
@@ -144,14 +147,18 @@ export default function PerformanceView() {
         <h2 className="text-lg font-bold text-slate-900">Score Summary</h2>
 
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <ScoreCard label="Theory Score" value={performance.theoryScore} />
+          <ScoreGauge
+            label="Theory Score"
+            value={performance.theoryScore}
+            color="green"
+          />
 
-          <ScoreCard
+          <ScoreGauge
             label="Simulator Score"
             value={performance.simulatorScore}
           />
 
-          <ScoreCard
+          <ScoreGauge
             label="Safety Score"
             value={performance.breakdown.safetyScore}
           />
@@ -251,7 +258,7 @@ export default function PerformanceView() {
           )}`}
           className="rounded-xl bg-[#006CB8] px-6 py-3 text-sm font-semibold text-white transition hover:opacity-90"
         >
-          View Instructor Feedback →
+          View Instructor Feedback
         </Link>
       </div>
     </div>

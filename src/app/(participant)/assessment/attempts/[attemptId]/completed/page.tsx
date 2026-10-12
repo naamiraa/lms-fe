@@ -50,7 +50,7 @@ export default async function AssessmentCompletedPage({
           )}`}
           className="mt-6 inline-flex rounded-xl bg-[#006CB8] px-6 py-3 text-sm font-semibold text-white transition hover:opacity-90"
         >
-          Continue to Simulation →
+          Continue to Simulation
         </Link>
       </GlassCard>
     </div>

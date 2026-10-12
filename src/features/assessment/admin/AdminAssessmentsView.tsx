@@ -1,4 +1,7 @@
 "use client";
+import AdminWorkflow from "@/components/shared/AdminWorkflow";
+import AdminPhotoBanner from "@/components/shared/AdminPhotoBanner";
+import AdminSelectionImage from "@/components/shared/AdminSelectionImage";
 import Button from "@/components/ui/Button";
 
 import Alert from "@/components/shared/Alert";
@@ -11,7 +14,7 @@ import PageHeader from "@/components/shared/PageHeader";
 
 import SummaryCard from "@/components/shared/MetricCard";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
   createAssessment,
@@ -52,6 +55,7 @@ export default function AdminAssessmentsView() {
   >(null);
 
   const [questions, setQuestions] = useState<AssessmentQuestion[]>([]);
+  const questionRequest = useRef(0);
 
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
@@ -117,14 +121,18 @@ export default function AdminAssessmentsView() {
   }
 
   async function loadQuestions(assessmentId: string) {
+    const request = ++questionRequest.current;
+    setQuestions([]);
     try {
       setQuestionsLoading(true);
       setError("");
 
       const data = await getAssessmentQuestions(assessmentId);
 
+      if (request !== questionRequest.current) return;
       setQuestions([...data].sort((a, b) => a.order - b.order));
     } catch (err) {
+      if (request !== questionRequest.current) return;
       setQuestions([]);
 
       setError(
@@ -133,7 +141,7 @@ export default function AdminAssessmentsView() {
           : "Failed to load assessment questions.",
       );
     } finally {
-      setQuestionsLoading(false);
+      if (request === questionRequest.current) setQuestionsLoading(false);
     }
   }
 
@@ -284,11 +292,17 @@ export default function AdminAssessmentsView() {
   }
 
   return (
-    <div className="space-y-6 p-6 lg:p-8">
+    <div className="space-y-6">
       <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
         <PageHeader
           title={<> Assessment Management </>}
-          description={<> Manage theory assessments and their questions. </>}
+          description={
+            <>
+              {" "}
+              Choose a test, check its linked learning module, then manage its
+              questions.{" "}
+            </>
+          }
         />
 
         <Button
@@ -322,12 +336,28 @@ export default function AdminAssessmentsView() {
         <SummaryCard label="Total Questions" value={totalQuestions} />
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[0.85fr_1.15fr]">
+      <AdminWorkflow
+        steps={[
+          {
+            title: "Choose an assessment",
+            description: "Each test is linked to one learning module.",
+            selection: selectedAssessment?.title,
+          },
+          {
+            title: "Manage its questions",
+            description:
+              "Add questions and mark the correct answer. A test with zero questions is not ready for participants.",
+          },
+        ]}
+      />
+      <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
         <GlassCard as="section" className="">
           <div className="border-b border-slate-100 p-5">
             <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
               <div>
-                <h2 className="font-semibold text-slate-900">Assessments</h2>
+                <h2 className="font-semibold text-slate-900">
+                  Choose an Assessment
+                </h2>
 
                 <p className="mt-1 text-sm text-slate-500">
                   Select an assessment to manage its questions.
@@ -337,7 +367,8 @@ export default function AdminAssessmentsView() {
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search..."
+                aria-label="Search assessments"
+                placeholder="Search test or module..."
                 className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 sm:w-44"
               />
             </div>
@@ -357,10 +388,18 @@ export default function AdminAssessmentsView() {
                     key={assessment.id}
                     type="button"
                     onClick={() => setSelectedAssessmentId(assessment.id)}
+                    aria-pressed={selected}
                     className={`w-full p-5 text-left transition ${
                       selected ? "bg-blue-50" : "hover:bg-slate-50"
                     }`}
                   >
+                    <AdminSelectionImage
+                      name={
+                        learningModules.find(
+                          (module) => module.id === assessment.learningModuleId,
+                        )?.trainingDomainName || assessment.learningModuleName
+                      }
+                    />
                     <div className="flex items-start justify-between gap-4">
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
@@ -372,7 +411,7 @@ export default function AdminAssessmentsView() {
                         </div>
 
                         <p className="mt-1 text-sm text-slate-500">
-                          {assessment.learningModuleName}
+                          Module: {assessment.learningModuleName}
                         </p>
 
                         <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-500">
@@ -385,12 +424,17 @@ export default function AdminAssessmentsView() {
                           </span>
 
                           <span className="rounded-lg bg-slate-100 px-2.5 py-1">
-                            {assessment.questionCount} questions
+                            {assessment.questionCount} questions ·{" "}
+                            {assessment.questionCount === 0
+                              ? "Needs questions"
+                              : "Questions added"}
                           </span>
                         </div>
                       </div>
 
-                      <span className="text-slate-400">›</span>
+                      <span className="shrink-0 text-xs font-bold text-[#006CB8]">
+                        {selected ? "Open ✓" : "Open →"}
+                      </span>
                     </div>
                   </button>
                 );
@@ -406,11 +450,24 @@ export default function AdminAssessmentsView() {
             </div>
           ) : (
             <>
+              <div className="p-4">
+                <AdminPhotoBanner
+                  name={
+                    learningModules.find(
+                      (module) =>
+                        module.id === selectedAssessment.learningModuleId,
+                    )?.trainingDomainName ||
+                    selectedAssessment.learningModuleName
+                  }
+                  title={selectedAssessment.title}
+                  description={`Linked learning module: ${selectedAssessment.learningModuleName}`}
+                />
+              </div>
               <div className="border-b border-slate-100 p-5">
                 <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-wider text-[#006CB8]">
-                      Assessment
+                      Test settings
                     </p>
 
                     <h2 className="mt-1 text-lg font-semibold text-slate-900">
@@ -504,7 +561,8 @@ export default function AdminAssessmentsView() {
                     </p>
 
                     <p className="mt-1 text-xs text-slate-500">
-                      Add the first question for this assessment.
+                      This test cannot be started by participants yet. Click Add
+                      Question to add its first question and correct answer.
                     </p>
                   </div>
                 ) : (

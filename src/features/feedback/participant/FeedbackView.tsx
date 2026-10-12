@@ -253,7 +253,7 @@ export default function FeedbackView() {
                 </h3>
 
                 <p className="mt-3 text-sm font-semibold text-[#006CB8]">
-                  Open Module →
+                  Open Module
                 </p>
               </Link>
             ))}

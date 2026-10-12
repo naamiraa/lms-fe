@@ -15,7 +15,7 @@ export default function PageHeader({
   const brand = tone === "brand";
   return (
     <div
-      className={`page-heading relative flex flex-col justify-between gap-4 overflow-hidden sm:flex-row sm:items-end ${brand ? "rounded-3xl bg-gradient-to-br from-[#006CB8] to-[#004878] p-6 shadow-lg shadow-blue-900/10 sm:p-8" : ""}`}
+      className={`page-heading relative flex flex-col justify-between gap-4 overflow-hidden sm:flex-row sm:items-end ${brand ? "training-hero min-h-[210px] rounded-3xl p-6 shadow-lg shadow-blue-900/10 sm:p-8" : ""}`}
     >
       {brand && (
         <div

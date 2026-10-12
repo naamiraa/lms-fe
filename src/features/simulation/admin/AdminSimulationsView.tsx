@@ -1,4 +1,7 @@
 "use client";
+import AdminWorkflow from "@/components/shared/AdminWorkflow";
+import AdminPhotoBanner from "@/components/shared/AdminPhotoBanner";
+import AdminSelectionImage from "@/components/shared/AdminSelectionImage";
 import Button from "@/components/ui/Button";
 
 import Alert from "@/components/shared/Alert";
@@ -11,7 +14,7 @@ import PageHeader from "@/components/shared/PageHeader";
 
 import SummaryCard from "@/components/shared/MetricCard";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import ConfirmModal from "@/components/ConfirmModal";
 import {
@@ -37,6 +40,8 @@ import SimulationScenarioFormModal from "./SimulationScenarioFormModal";
 export default function AdminSimulationsView() {
   const [domains, setDomains] = useState<SimulationDomain[]>([]);
   const [scenarios, setScenarios] = useState<SimulationScenario[]>([]);
+  const [scenariosLoading, setScenariosLoading] = useState(false);
+  const scenarioRequest = useRef(0);
 
   const [selectedDomainId, setSelectedDomainId] = useState("");
   const [editingDomain, setEditingDomain] = useState<SimulationDomain | null>(
@@ -88,8 +93,15 @@ export default function AdminSimulationsView() {
   }
 
   async function loadScenarios(domainId: string) {
-    const data = await getSimulationScenariosByDomain(domainId);
-    setScenarios(data);
+    const request = ++scenarioRequest.current;
+    setScenarios([]);
+    setScenariosLoading(true);
+    try {
+      const data = await getSimulationScenariosByDomain(domainId);
+      if (request === scenarioRequest.current) setScenarios(data);
+    } finally {
+      if (request === scenarioRequest.current) setScenariosLoading(false);
+    }
   }
 
   useEffect(() => {
@@ -265,7 +277,13 @@ export default function AdminSimulationsView() {
     <div className="space-y-6">
       <PageHeader
         title={<> Simulation Management </>}
-        description={<> Manage simulator training domains and scenarios. </>}
+        description={
+          <>
+            {" "}
+            Choose an operational domain, then create or update its training
+            scenarios.{" "}
+          </>
+        }
       />
 
       {error && <Alert>{error}</Alert>}
@@ -290,12 +308,27 @@ export default function AdminSimulationsView() {
         />
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[0.9fr_1.4fr]">
+      <AdminWorkflow
+        steps={[
+          {
+            title: "Choose an operational domain",
+            description:
+              "Domains group simulator environments, such as Urban Operations.",
+            selection: selectedDomain?.name,
+          },
+          {
+            title: "Manage domain scenarios",
+            description:
+              "A scenario defines the mission, difficulty, and estimated duration.",
+          },
+        ]}
+      />
+      <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.4fr)]">
         <GlassCard as="section" className="overflow-hidden">
           <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
             <div>
               <h2 className="font-semibold text-slate-900">
-                Simulation Domains
+                Choose a Simulation Domain
               </h2>
               <p className="mt-1 text-xs text-slate-500">
                 Select a domain to manage its scenarios.
@@ -331,8 +364,10 @@ export default function AdminSimulationsView() {
                     <button
                       type="button"
                       onClick={() => setSelectedDomainId(domain.id)}
+                      aria-pressed={selected}
                       className="w-full text-left"
                     >
+                      <AdminSelectionImage name={domain.name} large />
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <h3 className="font-medium text-slate-900">
@@ -349,6 +384,11 @@ export default function AdminSimulationsView() {
                       <p className="mt-3 text-xs font-medium text-slate-500">
                         {domain.scenarioCount} scenario
                         {domain.scenarioCount === 1 ? "" : "s"}
+                      </p>
+                      <p className="mt-3 text-xs font-bold text-[#006CB8]">
+                        {selected
+                          ? "✓ Showing scenarios"
+                          : "Manage scenarios →"}
                       </p>
                     </button>
 
@@ -379,10 +419,19 @@ export default function AdminSimulationsView() {
         </GlassCard>
 
         <GlassCard as="section" className="overflow-hidden">
-          <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+          {selectedDomain && (
+            <div className="p-4">
+              <AdminPhotoBanner
+                name={selectedDomain.name}
+                title={selectedDomain.name}
+                description="The scenarios below belong to this domain. Add a mission or edit its difficulty and duration."
+              />
+            </div>
+          )}
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
             <div>
               <h2 className="font-semibold text-slate-900">
-                Simulation Scenarios
+                Scenarios in This Domain
               </h2>
               <p className="mt-1 text-xs text-slate-500">
                 {selectedDomain
@@ -403,10 +452,12 @@ export default function AdminSimulationsView() {
           </div>
 
           <div className="p-4">
-            {!selectedDomainId ? (
+            {scenariosLoading ? (
+              <LoadingState label="Loading scenarios in this domain..." />
+            ) : !selectedDomainId ? (
               <EmptyState message="Select a domain to view scenarios." />
             ) : scenarios.length === 0 ? (
-              <EmptyState message="No scenarios available in this domain." />
+              <EmptyState message="No scenarios yet. Click Add Scenario to create the first mission for this domain." />
             ) : (
               <div className="space-y-3">
                 {scenarios.map((scenario) => (

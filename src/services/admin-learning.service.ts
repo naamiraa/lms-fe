@@ -8,9 +8,7 @@ import type {
   LearningContentRequest,
 } from "@/types/admin-learning";
 
-// ====================
 // TRAINING DOMAIN
-// ====================
 
 export function getTrainingDomains(): Promise<TrainingDomain[]> {
   return apiFetch<TrainingDomain[]>("/api/training-domains");
@@ -41,9 +39,7 @@ export function deactivateTrainingDomain(id: string): Promise<void> {
   });
 }
 
-// ====================
 // LEARNING MODULE
-// ====================
 
 export function getLearningModulesByDomain(
   trainingDomainId: string
@@ -78,9 +74,7 @@ export function deactivateLearningModule(id: string): Promise<void> {
   });
 }
 
-// ====================
 // LEARNING CONTENT
-// ====================
 
 export function getLearningContentsByModule(
   learningModuleId: string

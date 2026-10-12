@@ -1,4 +1,6 @@
 "use client";
+import QuestionProgress from "@/components/shared/QuestionProgress";
+import TrainingJourney from "@/components/shared/TrainingJourney";
 import Button from "@/components/ui/Button";
 
 import Alert from "@/components/shared/Alert";
@@ -171,7 +173,7 @@ export default function AssessmentAttemptView({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="mx-auto max-w-5xl space-y-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <PageHeader
           title={<> {attempt.assessmentTitle} </>}
@@ -187,9 +189,17 @@ export default function AssessmentAttemptView({
         <AssessmentTimer expiresAt={attempt.expiresAt} />
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_260px]">
-        <GlassCard className="p-6">
-          <div className="flex items-center justify-between gap-4">
+      <TrainingJourney active={1} />
+      <div className="grid gap-6 lg:grid-cols-[1fr_220px]">
+        <GlassCard className="p-6 sm:p-8">
+          <QuestionProgress
+            total={sortedQuestions.length}
+            answered={sortedQuestions.map((question) =>
+              Boolean(answers[question.id]),
+            )}
+            current={currentQuestionIndex}
+          />
+          <div className="mt-5 flex items-center justify-between gap-4">
             <p className="text-sm font-semibold text-[#006CB8]">
               Question {currentQuestionIndex + 1} of {sortedQuestions.length}
             </p>
@@ -217,7 +227,7 @@ export default function AssessmentAttemptView({
             {currentQuestion.questionText}
           </h2>
 
-          <div className="mt-6 space-y-3">
+          <div className="mt-6 grid gap-3 sm:grid-cols-2">
             {[...currentQuestion.options]
               .sort((a, b) => a.order - b.order)
               .map((option, index) => {
@@ -226,6 +236,7 @@ export default function AssessmentAttemptView({
                 return (
                   <button
                     key={option.id}
+                    aria-pressed={selected}
                     type="button"
                     onClick={() =>
                       handleSelectAnswer(currentQuestion.id, option.id)
@@ -274,7 +285,7 @@ export default function AssessmentAttemptView({
                 }
                 className="rounded-xl bg-[#006CB8] px-5 py-2.5 text-sm font-semibold text-white"
               >
-                Next →
+                Next
               </Button>
             ) : (
               <Button
@@ -282,7 +293,7 @@ export default function AssessmentAttemptView({
                 type="button"
                 onClick={handleSubmit}
                 disabled={isSubmitting}
-                className="rounded-xl bg-[#006CB8] px-5 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+                className="rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isSubmitting ? "Submitting..." : "Submit Assessment"}
               </Button>

@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import "tailwindcss" source("../");
 :root {
   --background: #f3f7fb;
   --foreground: #172c42;
@@ -57,7 +57,8 @@ button:not(:disabled) {
 .auth-photo {
   position: absolute;
   inset: 0;
-  background: url("/images/auth/fleet-background.jpg") center/cover no-repeat;
+  background: url("/images/simulator/fleet-background.png") center/cover
+    no-repeat;
   filter: blur(5px);
   transform: scale(1.025);
 }
@@ -130,5 +131,125 @@ button:not(:disabled) {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* Simulator presentation theme: backgrounds and panels only. */
+.simulator-shell {
+  position: relative;
+  isolation: isolate;
+  background: #dbe6ed;
+}
+.simulator-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+}
+.simulator-backdrop::before {
+  content: "";
+  position: absolute;
+  inset: -14px;
+  background: url("/images/simulator/fleet-background.png") center/cover
+    no-repeat;
+  filter: blur(7px);
+}
+.simulator-backdrop::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, #edf3f8d9, #ecf3f8b8 65%, #d7e2ebc9);
+}
+.simulator-shell .glass-card {
+  background: rgba(255, 255, 255, 0.89);
+  border: 1px solid #ffffffea;
+  box-shadow:
+    0 8px 32px #0f304515,
+    0 0 0 5px #ffffff2b;
+  backdrop-filter: blur(16px);
+}
+.simulator-header > div {
+  min-height: 68px;
+}
+.simulator-header > div > div > div.text-right p {
+  color: white;
+}
+.simulator-header > div > div > div.text-right p + p {
+  color: #d9efff;
+}
+.simulator-header > div button[aria-label="Sign out"] {
+  border-color: #ffffff40;
+  background: #ffffff15;
+  color: white;
+}
+.simulator-shell .page-heading:not(.training-hero) {
+  border-radius: 1.25rem;
+  padding: 1.4rem 1.6rem;
+  background: #ffffffe8;
+  border: 1px solid #ffffffed;
+  box-shadow: 0 0 0 5px #ffffff30;
+}
+.training-hero {
+  background-image:
+    linear-gradient(90deg, #052d4feb 0%, #063354c4 50%, #062f4c20 100%),
+    url("/images/simulator/fleet-background.png");
+  background-size: cover;
+  background-position: center 60%;
+}
+.auth-tint {
+  background: linear-gradient(120deg, #eaf4fac4, #eaf4fa70 55%, #d7e8f38f);
+}
+.auth-photo {
+  filter: blur(6px);
+}
+.training-tile {
+  box-shadow:
+    0 8px 28px #062a461a,
+    0 0 0 5px #ffffff2b;
+}
+@media (max-width: 639px) {
+  .simulator-shell .page-heading:not(.training-hero) {
+    padding: 1.2rem;
+  }
+  .training-tile {
+    min-height: 280px;
+  }
+}
+
+/* Coherent simulator release: strong contrast even before images load. */
+.training-hero {
+  background-color: #062c49;
+}
+.training-tile {
+  background-color: #072c47;
+}
+.auth-photo {
+  filter: none;
+  transform: none;
+  background-position: 38% center;
+}
+.auth-tint {
+  background: linear-gradient(
+    90deg,
+    #031b30a8 0%,
+    #05253a12 47%,
+    #062942b3 100%
+  );
+}
+.auth-card {
+  background: rgba(255, 255, 255, 0.93);
+}
+.simulator-header .text-right p {
+  color: #fff;
+}
+.simulator-header .text-right p + p {
+  color: #d9efff;
+}
+@media (max-width: 1023px) {
+  .auth-photo {
+    background-position: 32% center;
+  }
+  .auth-tint {
+    background: #05284175;
   }
 }

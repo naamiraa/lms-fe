@@ -206,7 +206,7 @@ export default function InstructorParticipantsView() {
                   href={`/instructor/feedback?sessionId=${participant.latestSession.simulationSessionId}`}
                   className="text-sm font-semibold text-[#006CB8] hover:text-[#005a9c]"
                 >
-                  View Latest Evaluation →
+                  View Latest Evaluation
                 </Link>
               </div>
             </GlassCard>

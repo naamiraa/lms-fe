@@ -1,3 +1,4 @@
+import { getTrainingImage } from "@/lib/training-visuals";
 import Link from "next/link";
 import type { LearningModule, LearningProgress } from "@/types/learning";
 import GlassCard from "@/components/shared/GlassCard";
@@ -13,16 +14,22 @@ export default function LearningModuleCard({
 }) {
   return (
     <GlassCard className="flex h-full flex-col overflow-hidden">
-      <div className="relative flex h-28 items-center justify-between overflow-hidden bg-gradient-to-br from-[#e0f0fa] to-[#f3f8fc] px-6">
-        <div
-          className="absolute -right-8 -top-12 h-48 w-48 rounded-full border-[24px] border-[#006CB8]/[0.04]"
-          aria-hidden="true"
+      <div className="relative flex h-44 items-end justify-between overflow-hidden px-5 pb-5 text-white">
+        <img
+          src={getTrainingImage(module.trainingDomainName)}
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover"
         />
-        <span className="relative flex h-14 w-14 items-center justify-center rounded-2xl border border-white bg-white/80 text-[#006CB8] shadow-sm">
-          <Icon name="book" width={28} height={28} />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#041d31]/90 via-[#041d31]/20 to-transparent" />
+        <span className="relative rounded-full border border-white/30 bg-white/15 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest backdrop-blur-md">
+          Mission {String(module.order).padStart(2, "0")}
         </span>
-        <span className="relative rounded-full border border-white bg-white/60 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-[#006CB8]">
-          Learning module
+        <span className="relative text-xs font-semibold">
+          {progress.isCompleted
+            ? "Completed"
+            : progress.completedContents > 0
+              ? "In progress"
+              : "Not started"}
         </span>
       </div>
       <div className="flex flex-1 flex-col p-6">

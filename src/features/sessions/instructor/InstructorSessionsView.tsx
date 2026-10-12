@@ -236,7 +236,7 @@ export default function InstructorSessionsView() {
                         {session.hasInstructorFeedback
                           ? "View Feedback"
                           : "Evaluate"}
-                        {" →"}
+                      
                       </Link>
                     </td>
                   </tr>

@@ -1,4 +1,7 @@
 "use client";
+import ScenarioSelectionCard from "@/components/shared/ScenarioSelectionCard";
+import DomainSelectionCard from "@/components/shared/DomainSelectionCard";
+import TrainingJourney from "@/components/shared/TrainingJourney";
 import Button from "@/components/ui/Button";
 
 import Alert from "@/components/shared/Alert";
@@ -215,6 +218,7 @@ export default function SimulationView() {
   return (
     <div className="space-y-8">
       <PageHeader
+        tone="brand"
         title={<> Simulation </>}
         description={
           <>
@@ -226,7 +230,8 @@ export default function SimulationView() {
         eyebrow={<> Simulator Training </>}
       />
 
-      <div className="flex items-center gap-3 text-sm">
+      <TrainingJourney active={2} />
+      <div className="flex flex-wrap items-center gap-3 text-xs sm:text-sm">
         <span className="rounded-full bg-[#006CB8] px-3 py-1.5 font-semibold text-white">
           1
         </span>
@@ -280,44 +285,24 @@ export default function SimulationView() {
           Choose the environment for your simulator training.
         </p>
 
+        {domains.length === 0 && (
+          <p className="mt-4 rounded-2xl bg-white/80 p-6 text-sm text-slate-500">
+            No active operational domains are available yet.
+          </p>
+        )}
         <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {domains.map((domain) => {
             const selected = selectedDomainId === domain.id;
 
             return (
-              <button
+              <DomainSelectionCard
                 key={domain.id}
-                type="button"
-                onClick={() => handleSelectDomain(domain.id)}
-                className={`rounded-2xl border p-5 text-left shadow-sm transition ${
-                  selected
-                    ? "border-[#006CB8] bg-blue-50"
-                    : "border-slate-200 bg-white hover:border-blue-200"
-                }`}
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <h3 className="font-bold text-slate-900">{domain.name}</h3>
-
-                    <p className="mt-2 text-sm leading-6 text-slate-500">
-                      {domain.description}
-                    </p>
-                  </div>
-
-                  <span
-                    className={`flex h-5 w-5 shrink-0 rounded-full border ${
-                      selected
-                        ? "border-[6px] border-[#006CB8]"
-                        : "border-slate-300"
-                    }`}
-                  />
-                </div>
-
-                <p className="mt-4 text-xs font-semibold text-[#006CB8]">
-                  {domain.scenarioCount} training scenario
-                  {domain.scenarioCount === 1 ? "" : "s"}
-                </p>
-              </button>
+                name={domain.name}
+                description={domain.description}
+                count={domain.scenarioCount}
+                selected={selected}
+                onSelect={() => handleSelectDomain(domain.id)}
+              />
             );
           })}
         </div>
@@ -337,50 +322,22 @@ export default function SimulationView() {
             <LoadingState label="Loading scenarios..." />
           ) : (
             <div className="mt-4 grid gap-4 md:grid-cols-2">
-              {scenarios.map((scenario) => {
+              {scenarios.length === 0 && (
+                <p className="rounded-2xl bg-white/80 p-6 text-sm text-slate-500">
+                  No active scenarios have been added to this domain yet.
+                </p>
+              )}
+              {scenarios.map((scenario, index) => {
                 const selected = selectedScenarioId === scenario.id;
 
                 return (
-                  <button
+                  <ScenarioSelectionCard
                     key={scenario.id}
-                    type="button"
-                    onClick={() => setSelectedScenarioId(scenario.id)}
-                    className={`rounded-2xl border p-5 text-left shadow-sm transition ${
-                      selected
-                        ? "border-[#006CB8] bg-blue-50"
-                        : "border-slate-200 bg-white hover:border-blue-200"
-                    }`}
-                  >
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <h3 className="font-bold text-slate-900">
-                          {scenario.name}
-                        </h3>
-
-                        <p className="mt-2 text-sm leading-6 text-slate-500">
-                          {scenario.description}
-                        </p>
-                      </div>
-
-                      <span
-                        className={`flex h-5 w-5 shrink-0 rounded-full border ${
-                          selected
-                            ? "border-[6px] border-[#006CB8]"
-                            : "border-slate-300"
-                        }`}
-                      />
-                    </div>
-
-                    <div className="mt-4 flex gap-2">
-                      <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
-                        {scenario.difficulty}
-                      </span>
-
-                      <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
-                        {scenario.estimatedMinutes} min
-                      </span>
-                    </div>
-                  </button>
+                    scenario={scenario}
+                    number={index + 1}
+                    selected={selected}
+                    onSelect={() => setSelectedScenarioId(scenario.id)}
+                  />
                 );
               })}
             </div>
@@ -503,7 +460,7 @@ export default function SimulationView() {
                     )}`}
                     className="rounded-xl bg-[#006CB8] px-6 py-3 text-sm font-semibold text-white transition hover:opacity-90"
                   >
-                    View Performance →
+                    View Performance
                   </Link>
                 </div>
               )}

@@ -7,8 +7,10 @@ import Brand from "@/components/shared/Brand";
 import Icon, { navigationIcon } from "@/components/ui/Icon";
 export default function Header({
   navigation = [],
+  simulator = false,
 }: {
   navigation?: { label: string; href: string }[];
+  simulator?: boolean;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -36,9 +38,11 @@ export default function Header({
     router.push("/login");
   }
   return (
-    <header className="sticky top-0 z-40 border-b border-white/80 bg-[#f5f9fc]/90 backdrop-blur-xl">
+    <header
+      className={`sticky top-0 z-40 border-b backdrop-blur-xl ${simulator ? "simulator-header border-white/20 bg-[#006CB8]/95 text-white" : "border-white/80 bg-[#f5f9fc]/90"}`}
+    >
       <div className="flex min-h-20 items-center justify-between gap-3 px-4 sm:px-8">
-        <div className="hidden lg:block">
+        <div className={simulator ? "hidden" : "hidden lg:block"}>
           <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
             Fleet Safety / Workspace
           </p>
@@ -46,8 +50,8 @@ export default function Header({
             {current?.label ?? "Training"}
           </p>
         </div>
-        <div className="lg:hidden">
-          <Brand compact />
+        <div className={simulator ? "" : "lg:hidden"}>
+          <Brand light={simulator} compact />
         </div>
         <div className="flex items-center gap-3 sm:gap-4">
           <div className="hidden text-right sm:block">
@@ -76,12 +80,40 @@ export default function Header({
             aria-expanded={menuOpen}
             aria-controls="mobile-navigation"
             aria-label={menuOpen ? "Close navigation" : "Open navigation"}
-            className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#006CB8] text-white lg:hidden"
+            className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/30 bg-[#006CB8] text-white lg:hidden"
           >
             <Icon name={menuOpen ? "close" : "menu"} />
           </button>
         </div>
       </div>
+      {simulator && (
+        <nav
+          aria-label="Main navigation"
+          className="hidden border-t border-white/15 px-8 lg:block"
+        >
+          <div className="mx-auto flex max-w-[1256px] flex-wrap gap-1 py-2">
+            {navigation.map((item) => {
+              const active =
+                pathname === item.href || pathname.startsWith(`${item.href}/`);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  aria-current={active ? "page" : undefined}
+                  className={`flex items-center gap-2 rounded-lg px-4 py-2.5 text-xs font-semibold transition ${active ? "bg-white text-[#006CB8] shadow-sm" : "text-blue-50 hover:bg-white/10"}`}
+                >
+                  <Icon
+                    name={navigationIcon(item.href)}
+                    width={16}
+                    height={16}
+                  />
+                  {item.label}
+                </Link>
+              );
+            })}
+          </div>
+        </nav>
+      )}
       {menuOpen && (
         <nav
           id="mobile-navigation"

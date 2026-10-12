@@ -21,6 +21,7 @@ interface Props {
   domain?: TrainingDomain | null;
   module?: LearningModule | null;
   content?: LearningContent | null;
+  parentLabel?: string;
 
   onClose: () => void;
   onSubmit: (data: Record<string, string | number>) => Promise<void>;
@@ -32,6 +33,7 @@ export default function LearningFormModal({
   domain,
   module,
   content,
+  parentLabel,
   onClose,
   onSubmit,
 }: Props) {
@@ -139,6 +141,9 @@ export default function LearningFormModal({
             <h2 className="mt-1 text-lg font-bold text-slate-900">
               {titleText}
             </h2>
+            {parentLabel && (
+              <p className="mt-2 text-sm text-[#006CB8]">{parentLabel}</p>
+            )}
           </div>
 
           <button
@@ -200,8 +205,18 @@ export default function LearningFormModal({
                   value={contentUrl}
                   onChange={(e) => setContentUrl(e.target.value)}
                   className={inputClass}
-                  placeholder="https://..."
+                  placeholder="https://... or /videos/lesson.mp4"
+                  aria-describedby="content-url-help"
                 />
+                <p
+                  id="content-url-help"
+                  className="mt-2 text-xs leading-5 text-slate-500"
+                >
+                  Use a public MP4/WebM, YouTube, Vimeo, or Google Drive file
+                  link. Local files in public/videos use /videos/filename.mp4;
+                  files on the backend need the full backend URL. The link must
+                  be accessible to participants.
+                </p>
               </Field>
             </>
           )}

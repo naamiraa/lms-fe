@@ -1,4 +1,7 @@
 "use client";
+import TrainingTile from "@/components/shared/TrainingTile";
+import TrainingJourney from "@/components/shared/TrainingJourney";
+import { trainingImages } from "@/lib/training-visuals";
 import Alert from "@/components/shared/Alert";
 
 import LoadingState from "@/components/shared/LoadingState";
@@ -56,10 +59,44 @@ export default function ParticipantDashboardView() {
       {/* Page Header */}
       <PageHeader
         tone="brand"
-        title={<> Dashboard </>}
-        description={<> Track your training progress and performance. </>}
+        title={<> Training Hub </>}
+        eyebrow={<> Fleet Safety Simulator </>}
+        description={
+          <>
+            {" "}
+            Build your skills, complete your training, and get ready for your
+            next simulator session.{" "}
+          </>
+        }
       />
 
+      <TrainingJourney />
+      <div className="grid gap-5 md:grid-cols-3">
+        <TrainingTile
+          title="Learning Missions"
+          eyebrow="01 / Build your skills"
+          description="Study your assigned modules and prepare for the road ahead."
+          image={trainingImages.ground}
+          href="/learning"
+          action="Continue learning"
+        />
+        <TrainingTile
+          title="Theory Challenge"
+          eyebrow="02 / Test your knowledge"
+          description="Put your safety knowledge into practice with the theory assessment."
+          image={trainingImages.background}
+          href="/assessment"
+          action="Open assessment"
+        />
+        <TrainingTile
+          title="Simulator Training"
+          eyebrow="03 / Get behind the wheel"
+          description="Choose an operational domain and prepare your simulator session."
+          image={trainingImages.ground}
+          href="/simulation"
+          action="Select training"
+        />
+      </div>
       {/* Metrics */}
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <MetricCard

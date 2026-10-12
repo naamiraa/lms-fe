@@ -5,6 +5,7 @@ import LoadingState from "@/components/shared/LoadingState";
 
 import GlassCard from "@/components/shared/GlassCard";
 
+import TrainingJourney from "@/components/shared/TrainingJourney";
 import PageHeader from "@/components/shared/PageHeader";
 
 import { useEffect, useState } from "react";
@@ -100,6 +101,8 @@ export default function LearningView() {
         }
         eyebrow={<> Learning Center </>}
       />
+
+      <TrainingJourney active={0} />
 
       {domains.length === 0 ? (
         <GlassCard className="p-8 text-center">
